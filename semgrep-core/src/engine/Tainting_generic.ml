@@ -18,7 +18,6 @@
 module AST = AST_generic
 module V = Visitor_AST
 module R = Rule
-module R2 = Mini_rule
 module PM = Pattern_match
 
 (*****************************************************************************)
@@ -47,61 +46,43 @@ module DataflowY = Dataflow.Make (struct
   let short_string_of_node n = Display_IL.short_string_of_node_kind n.F2.n
 end)
 
-let match_pat_eorig pat =
-  match pat with
-  | [] -> fun _ -> false
-  | xs ->
-      let xs =
-        xs
-        |> List.map (function
-             | AST.E e -> e
-             | AST.S { AST.s = AST.ExprStmt (e, _); _ } ->
-                 (* Some statements in the input language are translated into
-                  * expressions in the Generic AST. This is e.g. the case of
-                  * `echo' in PHP. This small hack allows us to annotate those
-                  * statements as souces/sanitizers/sinks. *)
-                 e
-             | _ ->
-                 failwith "Only Expr patterns are supported in tainting rules")
-      in
-      let pat = Common2.foldl1 (fun x acc -> AST.DisjExpr (x, acc)) xs in
-      fun eorig ->
-        (* the rule is just used by match_e_e for profiling stats *)
-        let rule =
-          {
-            R2.id = "<tainting>";
-            pattern = AST.E pat;
-            pattern_string = "<tainting> pat";
-            message = "";
-            severity = R2.Error;
-            languages = [];
-          }
-        in
+type env = {
+  sources : Range.t list;
+  sanitizers : Range.t list;
+  sinks : Range.t list;
+}
 
-        let env =
-          Matching_generic.empty_environment None Config_semgrep.default_config
-        in
-        let matches_with_env = Match_patterns.match_e_e rule pat eorig env in
-        matches_with_env <> []
+let mk_env file ast_and_errors (rule : R.rule) (spec : R.taint_spec) =
+  let config = Config_semgrep.default_config (* TODO *) in
+  let equivs = [] (* TODO *) in
+  let lazy_ast_and_errors = lazy ast_and_errors in
+  let file_and_more = (file, rule.languages, lazy_ast_and_errors) in
+  let lazy_content = lazy (Common.read_file file) in
+  let find_ranges_one pformula =
+    let formula = Rule.formula_of_pformula pformula in
+    Match_rules.matches_of_formula config equivs rule.id file_and_more
+      lazy_content formula None
+    |> snd
+    |> List.map (fun rwm -> rwm.Range_with_metavars.r)
+  in
+  let find_ranges pfs = pfs |> List.map find_ranges_one |> List.concat in
+  {
+    sources = find_ranges spec.sources;
+    sanitizers = find_ranges spec.sanitizers;
+    sinks = find_ranges spec.sinks;
+  }
 
-let match_pat_exp pat exp =
-  let eorig = exp.IL.eorig in
-  match_pat_eorig pat eorig
-
-(*s: function [[Tainting_generic.match_pat_instr]] *)
-let match_pat_instr pat instr =
-  let eorig = instr.IL.iorig in
-  match_pat_eorig pat eorig
-
-(*e: function [[Tainting_generic.match_pat_instr]] *)
+let any_in_ranges any ranges =
+  let tok1, tok2 = Visitor_AST.range_of_any any in
+  let r = { Range.start = tok1.charpos; end_ = tok2.charpos } in
+  List.exists (Range.( $<=$ ) r) ranges
 
 (*s: function [[Tainting_generic.config_of_rule]] *)
-let config_of_rule found_tainted_sink spec =
+let config_of_rule found_tainted_sink env =
   {
-    Dataflow_tainting.is_source = match_pat_instr spec.R.sources;
-    is_source_exp = match_pat_exp spec.R.sources;
-    is_sanitizer = match_pat_instr spec.R.sanitizers;
-    is_sink = match_pat_instr spec.R.sinks;
+    Dataflow_tainting.is_source = (fun x -> any_in_ranges x env.sources);
+    is_sanitizer = (fun x -> any_in_ranges x env.sanitizers);
+    is_sink = (fun x -> any_in_ranges x env.sinks);
     found_tainted_sink;
   }
 
@@ -123,8 +104,8 @@ let check hook (taint_rules : (Rule.rule * Rule.taint_spec) list) file ast =
 
     taint_rules
     |> List.iter (fun (rule, taint_spec) ->
-           let found_tainted_sink instr _env =
-             let code = AST.E instr.IL.iorig in
+           let found_tainted_sink x _env =
+             let code = x in
              let range_loc = V.range_of_any code in
              let tokens = lazy (V.ii_of_any code) in
              let rule_id =
@@ -139,7 +120,9 @@ let check hook (taint_rules : (Rule.rule * Rule.taint_spec) list) file ast =
                { PM.rule_id; file; range_loc; tokens; env = [] }
                matches
            in
-           let config = config_of_rule found_tainted_sink taint_spec in
+           (* TODO: Do this once per rule, not once per function! *)
+           let env = mk_env file (ast, []) rule taint_spec in
+           let config = config_of_rule found_tainted_sink env in
            let mapping =
              Dataflow_tainting.fixpoint config fun_env opt_name flow
            in
@@ -162,6 +145,7 @@ let check hook (taint_rules : (Rule.rule * Rule.taint_spec) list) file ast =
                 check_stmt opt_name fdef.AST.fbody
             | __else__ -> k def);
         V.kfunction_definition =
+          (* TODO: Fix double check of function definition *)
           (fun (_k, _) def -> check_stmt None def.AST.fbody);
       }
   in

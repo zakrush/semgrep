@@ -46,11 +46,10 @@ type fun_env = (Dataflow.var, unit) Hashtbl.t
 
 (*s: type [[Dataflow_tainting.config]] *)
 type config = {
-  is_source : IL.instr -> bool;
-  is_source_exp : IL.exp -> bool;
-  is_sink : IL.instr -> bool;
-  is_sanitizer : IL.instr -> bool;
-  found_tainted_sink : IL.instr -> unit Dataflow.env -> unit;
+  is_source : AST_generic.any -> bool;
+  is_sink : AST_generic.any -> bool;
+  is_sanitizer : AST_generic.any -> bool;
+  found_tainted_sink : AST_generic.any -> unit Dataflow.env -> unit;
 }
 (** This can use semgrep patterns under the hood. Note that a source can be an
   * instruction but also an expression. *)
@@ -90,11 +89,11 @@ let option_to_varmap = function
 (* Tainted *)
 (*****************************************************************************)
 
-let sanitized config instr =
+let sanitized_instr config instr =
   match instr.i with
   | Call (_, { e = Fetch { base = Var (("sanitize", _), _); _ }; _ }, []) ->
       true
-  | ___else___ -> config.is_sanitizer instr
+  | ___else___ -> config.is_sanitizer (G.E instr.iorig)
 
 let rec tainted config fun_env env exp =
   (* We call `tainted` recursively on each subexpression, so each subexpression
@@ -102,18 +101,35 @@ let rec tainted config fun_env env exp =
    * a source, this would infer that `"aa" + location.href + "bb"` is tainted.
    * Also note that any arbitrary expression can be source! *)
   let is_tainted = tainted config fun_env env in
-  let go_into = function
-    | Fetch { base = Var var; _ } ->
+  let go_base = function
+    | Var var ->
         VarMap.mem (str_of_name var) env
         || Hashtbl.mem fun_env (str_of_name var)
+    | VarSpecial _ -> false
+    | Mem e -> is_tainted e
+  in
+  let go_offset = function
+    | NoOffset | Dot _ -> false
+    | Index e -> is_tainted e
+  in
+  let go_into = function
     | Fetch { base = VarSpecial (This, _); offset = Dot fld; _ } ->
         Hashtbl.mem fun_env (str_of_name fld)
-    | Fetch _ | Literal _ | FixmeExp _ -> false
+    | Fetch { base; offset; _ } -> go_base base || go_offset offset
+    | Literal _ | FixmeExp _ -> false
     | Composite (_, (_, es, _)) | Operator (_, es) -> List.exists is_tainted es
     | Record fields -> List.exists (fun (_, e) -> is_tainted e) fields
     | Cast (_, e) -> is_tainted e
   in
-  config.is_source_exp exp || go_into exp.e
+  (* FIXME: Reports the same bug too many times if a subexpr is tainted,
+     one time per recursive call! Due to the subset nature of the is_source/is_sink
+     tests *)
+  (not (config.is_sanitizer (G.E exp.eorig)))
+  &&
+  let x = config.is_source (G.E exp.eorig) || go_into exp.e in
+  if x && config.is_sink (G.E exp.eorig) then
+    config.found_tainted_sink (G.E exp.eorig) env;
+  x
 
 let tainted_instr config fun_env env instr =
   let is_tainted = tainted config fun_env env in
@@ -126,8 +142,12 @@ let tainted_instr config fun_env env instr =
     | CallSpecial (_, _, args) -> List.exists is_tainted args
     | FixmeInstr _ -> false
   in
-  (not (sanitized config instr))
-  && (config.is_source instr || tainted_args instr.i)
+  (not (sanitized_instr config instr))
+  &&
+  let x = config.is_source (G.E instr.iorig) || tainted_args instr.i in
+  if x && config.is_sink (G.E instr.iorig) then
+    config.found_tainted_sink (G.E instr.iorig) env;
+  x
 
 (*****************************************************************************)
 (* Transfer *)
@@ -158,27 +178,17 @@ let (transfer :
   in
   let node = flow#nodes#assoc ni in
 
-  (* TODO: do that later? once everything if finished? *)
-  ( match node.F.n with
-  | NInstr x ->
-      (* TODO: use metavar in sink to know which argument we should check
-       * for taint? *)
-      if config.is_sink x && tainted_instr config fun_env in' x then
-        config.found_tainted_sink x in'
-  (* if just a single return is tainted then the function is tainted *)
-  | NReturn (_, e) when tainted config fun_env in' e -> (
-      match opt_name with
-      | Some var -> Hashtbl.add fun_env (str_of_name var) ()
-      | None -> () )
-  | Enter | Exit | TrueNode | FalseNode | Join | NCond _ | NGoto _ | NReturn _
-  | NThrow _ | NOther _ | NTodo _ ->
-      () );
-
   let gen_ni_opt =
     match node.F.n with
     | NInstr x ->
         if tainted_instr config fun_env in' x then IL.lvar_of_instr_opt x
         else None
+    (* if just a single return is tainted then the function is tainted *)
+    | NReturn (_, e) when tainted config fun_env in' e ->
+        ( match opt_name with
+        | Some var -> Hashtbl.add fun_env (str_of_name var) ()
+        | None -> () );
+        None
     | Enter | Exit | TrueNode | FalseNode | Join | NCond _ | NGoto _ | NReturn _
     | NThrow _ | NOther _ | NTodo _ ->
         None
