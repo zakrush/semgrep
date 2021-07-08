@@ -167,7 +167,13 @@ let tainting_test lang rules_file file =
     in
   let search_rules, taint_rules = Rule.partition_rules rules in
   assert (search_rules = []);
-  let matches = Tainting_generic.check (fun _ _ _ -> ()) taint_rules file ast in
+  let matches =
+    let equivs = [] in
+    Tainting_generic.check
+      (fun _ _ _ -> ())
+      Config_semgrep.default_config
+      taint_rules equivs file ast
+  in
   let actual =
     matches |> List.map (fun m ->
       { E.typ = SemgrepMatchFound(m.P.rule_id.id,m.P.rule_id.message);
