@@ -345,6 +345,8 @@ class OutOfMemoryError(SemgrepError):
 
 @attr.s(frozen=True, eq=True)
 class CoreWarning(SemgrepError):
+    rule_id: str = attr.ib()
+    path: Path = attr.ib()
     check_id: str = attr.ib()
     msg: str = attr.ib()
 
@@ -355,7 +357,8 @@ class CoreWarning(SemgrepError):
         # "MatchingError" -> "matching error"
         error_id = " ".join(re.sub("([A-Z]+)", r" \1", self.check_id).split()).lower()
         return with_color(
-            Fore.YELLOW, f"semgrep-core reported a {error_id}\n  --> {self.msg}"
+            Fore.YELLOW,
+            f"semgrep-core reported a {error_id} when running {self.rule_id} on {self.path}\n  --> {self.msg}",
         )
 
     def to_dict_base(self) -> Dict[str, Any]:
@@ -367,6 +370,8 @@ class CoreWarning(SemgrepError):
 
 @attr.s(frozen=True, eq=True)
 class CoreFatalError(SemgrepError):
+    rule_id: str = attr.ib()
+    path: Path = attr.ib()
     msg: str = attr.ib()
 
     code = FATAL_EXIT_CODE
@@ -375,7 +380,7 @@ class CoreFatalError(SemgrepError):
     def __str__(self) -> str:
         return with_color(
             Fore.RED,
-            f"semgrep-core reported a fatal error:\n-----\n{self.msg}-----\nPlease file a bug report at https://github.com/returntocorp/semgrep/issues/new/choose",
+            f"semgrep-core reported a fatal error when running {self.rule_id} on {self.path}:\n-----\n{self.msg}-----\nPlease file a bug report at https://github.com/returntocorp/semgrep/issues/new/choose",
         )
 
     def to_dict_base(self) -> Dict[str, Any]:
