@@ -378,9 +378,15 @@ class CoreFatalError(SemgrepError):
     level = Level.ERROR
 
     def __str__(self) -> str:
+        msg_lines = self.msg.splitlines()
+        error_header = msg_lines[0] if msg_lines else "no message"
+        error_trace = "\n".join(msg_lines[:])
         return with_color(
             Fore.RED,
-            f"semgrep-core reported a fatal error when running {self.rule_id} on {self.path}:\n-----\n{self.msg}-----\nPlease file a bug report at https://github.com/returntocorp/semgrep/issues/new/choose",
+            f"semgrep-core failed to run {self.rule_id} on {self.path}\n  --> {error_header}\nPlease file a bug report at https://github.com/returntocorp/semgrep/issues/new/choose and attach the error trace below.\n",
+        ) + with_color(
+            Fore.WHITE,
+            f"-----[ BEGIN error trace ]-----\n{error_trace}\n-----[ END error trace ]-----\n",
         )
 
     def to_dict_base(self) -> Dict[str, Any]:
