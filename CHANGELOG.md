@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 ## Unreleased
 
 ### Added
+- Vardef-assign equivalence can now be disabled via rule `options:` with `vardef_assign: false`
 
 ### Changed
 

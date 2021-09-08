@@ -90,8 +90,8 @@ let default_visitor =
 
 let v_id _ = ()
 
-let (mk_visitor : visitor_in -> visitor_out) =
- fun vin ->
+let (mk_visitor : ?vardef_assign:bool -> visitor_in -> visitor_out) =
+ fun ?(vardef_assign = false) vin ->
   (* start of auto generation *)
   (* NOTE: we do a few subtle things at a few places now for semgrep
    * to trigger a few more artificial visits:
@@ -1004,7 +1004,7 @@ let (mk_visitor : visitor_in -> visitor_out) =
     let v_vtype = v_option v_type_ v_vtype in
     ()
   and v_vardef_as_assign_expr ventity = function
-    | VarDef ({ vinit = Some _; _ } as vdef) ->
+    | VarDef ({ vinit = Some _; _ } as vdef) when vardef_assign ->
         (* A VarDef is implicitly a declaration followed by an assignment expression,
          * so we should visit the assignment expression as well.
          *
@@ -1231,7 +1231,7 @@ let extract_info_visitor recursor =
   let hooks =
     { default_visitor with kinfo = (fun (_k, _) i -> Common.push i globals) }
   in
-  let vout = mk_visitor hooks in
+  let vout = mk_visitor ~vardef_assign:false hooks in
   recursor vout;
   List.rev !globals
 
@@ -1303,7 +1303,7 @@ let extract_ranges recursor =
           | Some range -> incorporate_tokens range);
     }
   in
-  let vout = mk_visitor hooks in
+  let vout = mk_visitor ~vardef_assign:false hooks in
   recursor vout;
   !ranges
 
