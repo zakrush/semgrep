@@ -1,4 +1,5 @@
 import logging
+import argparse
 import os
 import subprocess
 import sys
@@ -13,15 +14,34 @@ handler.setFormatter(
 )
 logger.addHandler(handler)
 
-if __name__ == "__main__":
-    import argparse
+def get_benchmark_script_args(carrot_args):
+    actual_args = []
+    for arg in carrot_args:
+        new_arg = arg.replace('^', '--')
+        actual_args.append(new_arg)
+    return actual_args
 
+def parse_args():
     parser = argparse.ArgumentParser()
     # Add arguments here
-    parser.add_argument("--against", "-a")
-    parser.add_argument("--semgrep-core", "-s")
+    parser.add_argument(
+        "--against",
+        "-a",
+        required=True,
+        help="Semantic version string of semgrep version you wish to test against.")
+    parser.add_argument(
+        "--semgrep-core",
+        "-s",
+        help="Path to local semgrep-core build.")
+    parser.add_argument(
+        "--benchmark-args", "-b", nargs='+', default=[],
+        help="Arguments you wish to pass to the benchmarking script run-benchmarks. \
+              However, instead of using '--<arg>', use '^<arg>' so parser isn't confused.")
 
-    args = parser.parse_args()
+    return parser.parse_args()
+
+def main():
+    args = parse_args()
 
     builder = venv.EnvBuilder(
         clear=True,
@@ -57,3 +77,10 @@ if __name__ == "__main__":
     )
 
     subprocess.run(["semgrep", "--version"])
+
+    benchmarks_command = ["./run-benchmarks"] + get_benchmark_script_args(args.benchmark_args)
+    logger.info(f"benchmarks command is {benchmarks_command}")
+    subprocess.run(benchmarks_command)
+
+if __name__ == "__main__":
+    main()
