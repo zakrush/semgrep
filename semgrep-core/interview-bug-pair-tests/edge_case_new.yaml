@@ -1,0 +1,17 @@
+rules:
+- id: resetting-value
+  patterns:
+    - pattern-inside:
+        - patterns:
+           - pattern: |
+              def $FUNC($X, ...):
+                 ...
+           - pattern: |
+              use_value($X)
+              ...
+    - pattern: |
+        use_value("DEFAULT_VALUE")
+        ...
+  message: Resetting with default after value set
+  languages: [python]
+  severity: ERROR
