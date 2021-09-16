@@ -1,0 +1,17 @@
+rules:
+  - id: return-in-init
+    languages:
+      - python
+    message: return should never appear inside a class __init__ function
+    patterns:
+      - pattern: return ...
+      - pattern-inside:
+          - patterns: 
+             - pattern: |
+                 class $CLASS:
+                   ...
+             - pattern: |
+                 def __init__(...):
+                   ...
+    severity: ERROR
+
