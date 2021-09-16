@@ -3,6 +3,7 @@ class A:
         # ruleid: return-in-init
         return None
 
+
 class B:
     def __init__(self):
         # ok: return-in-init

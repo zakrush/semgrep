@@ -12,4 +12,3 @@ rules:
           def __init__(...):
               ...
     severity: ERROR
-

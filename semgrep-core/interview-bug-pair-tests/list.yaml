@@ -6,7 +6,7 @@ rules:
     patterns:
       - pattern: return ...
       - pattern-inside:
-          - patterns: 
+          - patterns:
              - pattern: |
                  class $CLASS:
                    ...
@@ -14,4 +14,3 @@ rules:
                  def __init__(...):
                    ...
     severity: ERROR
-
