@@ -503,7 +503,10 @@ and parse_formula_old env ((key, value) : key * G.expr) : R.formula_old =
   match s with
   | "pattern" -> R.Pat (get_pattern value)
   | "pattern-not" -> R.PatNot (t, get_pattern value)
-  | "pattern-inside" -> R.PatInside (get_pattern value)
+  | "pattern-inside" -> (
+      match value with
+      | { G.e = G.L (String _); _ } -> R.PatInside (get_pattern value)
+      | _ -> parse_formula_old env (key, value))
   | "pattern-not-inside" -> R.PatNotInside (t, get_pattern value)
   | "pattern-either" ->
       R.PatEither (t, parse_listi env key get_nested_formula value)
