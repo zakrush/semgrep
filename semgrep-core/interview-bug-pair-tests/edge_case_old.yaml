@@ -5,10 +5,10 @@ rules:
         def $FUNC($X, ...):
            ...
     - pattern-inside: |
-        use_value($X)
+        lock($X)
         ...
     - pattern: |
-        use_value("DEFAULT_VALUE")
+        set($X)
         ...
   message: Resetting with default after value set
   languages: [python]
