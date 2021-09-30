@@ -123,7 +123,9 @@ let dump_tree_sitter_cst lang file =
 
 let test_parse_tree_sitter lang root_paths =
   let paths = List.map Common.fullpath root_paths in
-  let paths, _skipped_paths = Find_target.files_of_dirs_or_files lang paths in
+  let paths, _skipped_paths, cleanup_hook =
+    Find_target.files_of_dirs_or_files lang paths
+  in
   let stat_list = ref [] in
   paths
   |> Console.progress (fun k ->
@@ -173,13 +175,14 @@ let test_parse_tree_sitter lang root_paths =
                        (spf "lang %s not supported with tree-sitter"
                           (Lang.string_of_lang lang)));
                  PI.correct_stat file
-               with exn ->
-                 pr2 (spf "%s: exn = %s" file (Common.exn_to_s exn));
-                 PI.bad_stat file
+               with
+               | exn ->
+                   pr2 (spf "%s: exn = %s" file (Common.exn_to_s exn));
+                   PI.bad_stat file
              in
              Common.push stat stat_list));
   Parse_info.print_parsing_stat_list !stat_list;
-  ()
+  cleanup_hook ()
 
 (*****************************************************************************)
 (* Pfff and tree-sitter parsing *)
@@ -234,7 +237,9 @@ let parsing_common ?(verbose = true) lang files_or_dirs =
     (* = absolute paths *)
     List.map Common.fullpath files_or_dirs
   in
-  let paths, skipped = Find_target.files_of_dirs_or_files lang paths in
+  let paths, skipped, cleanup_hook =
+    Find_target.files_of_dirs_or_files lang paths
+  in
   let stats =
     paths
     |> List.rev_map (fun file ->
@@ -268,6 +273,7 @@ let parsing_common ?(verbose = true) lang files_or_dirs =
            in
            stat)
   in
+  cleanup_hook ();
   (stats, skipped)
 
 (*
@@ -430,7 +436,7 @@ let diff_pfff_tree_sitter xs =
 (*****************************************************************************)
 
 let test_parse_rules roots =
-  let targets, _skipped_paths =
+  let targets, _skipped_paths, cleanup_hook =
     Find_target.files_of_dirs_or_files Lang.Yaml roots
   in
   targets
@@ -438,4 +444,5 @@ let test_parse_rules roots =
          logger#info "processing %s" file;
          let _r = Parse_rule.parse file in
          ());
+  cleanup_hook ();
   logger#info "done test_parse_rules"

@@ -82,10 +82,11 @@ def partition(pred: Callable, iterable: Iterable) -> Tuple[List, List]:
     return list(filter(pred, i1)), list(itertools.filterfalse(pred, i2))
 
 
-def partition_set(pred: Callable, iterable: Iterable) -> Tuple[Set, Set]:
+def partition_set(
+    pred: Callable[[T], bool], iterable: Iterable[T]
+) -> Tuple[Set[T], Set[T]]:
     """E.g. partition(is_odd, range(10)) -> 1 3 5 7 9  and  0 2 4 6 8"""
-    i1, i2 = itertools.tee(iterable)
-    return set(filter(pred, i1)), set(itertools.filterfalse(pred, i2))
+    return {x for x in iterable if pred(x)}, {x for x in iterable if not pred(x)}
 
 
 # cf. https://docs.python.org/3/library/itertools.html#itertools-recipes

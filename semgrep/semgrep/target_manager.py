@@ -92,7 +92,9 @@ class TargetManager:
         globbing or by 'git ls-files' e.g. submodules), and files missing
         the read permission.
         """
-        return TargetManager._is_valid_file_or_dir(path) and path.is_file()
+        return TargetManager._is_valid_file_or_dir(path) and (
+            path.is_file() or path.is_fifo()
+        )
 
     @staticmethod
     def _filter_valid_files(paths: FrozenSet[Path]) -> FrozenSet[Path]:
@@ -299,7 +301,9 @@ class TargetManager:
         files, directories = partition_set(lambda p: not p.is_dir(), targets)
 
         # Error on non-existent files
-        explicit_files, nonexistent_files = partition_set(lambda p: p.is_file(), files)
+        explicit_files, nonexistent_files = partition_set(
+            lambda p: p.is_file() or p.is_fifo(), files
+        )
         if nonexistent_files:
             self.output_handler.handle_semgrep_error(
                 FilesNotFoundError(tuple(nonexistent_files))

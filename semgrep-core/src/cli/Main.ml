@@ -340,14 +340,14 @@ let cache_computation file cache_file_of_file f =
           res)
         else
           let res = f () in
-          (try Common2.write_value (Version.version, file, res) file_cache
-           with Sys_error err ->
-             (* We must ignore SIGXFSZ to get this exception, see
-              * note "SIGXFSZ (file size limit exceeded)". *)
-             logger#error "Could not write cache file for %s (%s): %s" file
-               file_cache err;
-             (* Make sure we don't leave corrupt cache files behind us. *)
-             if Sys.file_exists file_cache then Sys.remove file_cache);
+          (try Common2.write_value (Version.version, file, res) file_cache with
+          | Sys_error err ->
+              (* We must ignore SIGXFSZ to get this exception, see
+               * note "SIGXFSZ (file size limit exceeded)". *)
+              logger#error "Could not write cache file for %s (%s): %s" file
+                file_cache err;
+              (* Make sure we don't leave corrupt cache files behind us. *)
+              if Sys.file_exists file_cache then Sys.remove file_cache);
           res)
 
 let cache_file_of_file filename =
@@ -511,7 +511,8 @@ let parse_generic lang file =
            *  However this introduces some weird regressions in CI so we focus on
            *  just Timeout for now.
            *)
-        with Main_timeout _ as e -> Right e)
+        with
+        | Main_timeout _ as e -> Right e)
   in
   match v with
   | Left x -> x
@@ -531,15 +532,16 @@ let parse_pattern lang_pattern str =
           Parse_pattern.parse_pattern lang_pattern ~print_errors:false str
         in
         res)
-  with exn ->
-    raise
-      (Rule.InvalidPattern
-         ( "no-id",
-           str,
-           Rule.L (lang_pattern, []),
-           Common.exn_to_s exn,
-           Parse_info.unsafe_fake_info "no loc",
-           [] ))
+  with
+  | exn ->
+      raise
+        (Rule.InvalidPattern
+           ( "no-id",
+             str,
+             Rule.L (lang_pattern, []),
+             Common.exn_to_s exn,
+             Parse_info.unsafe_fake_info "no loc",
+             [] ))
   [@@profiling]
 
 (*****************************************************************************)
@@ -615,7 +617,7 @@ let xlang_files_of_dirs_or_files xlang files_or_dirs =
        * Anyway right now the Semgrep python wrapper is
        * calling -config with an explicit list of files.
        *)
-      (files_or_dirs, [])
+      (files_or_dirs, [], fun () -> ())
   | R.L (lang, _) -> Find_target.files_of_dirs_or_files lang files_or_dirs
 
 (*****************************************************************************)
@@ -693,29 +695,33 @@ let semgrep_with_patterns lang (rules, rule_parse_time) files skipped =
   pr s
 
 let semgrep_with_patterns_file lang rules_file roots =
-  let targets, skipped = Find_target.files_of_dirs_or_files lang roots in
+  let targets, skipped, cleanup_hook =
+    Find_target.files_of_dirs_or_files lang roots
+  in
   try
     logger#info "Parsing %s" rules_file;
     let timed_rules =
       Common.with_time (fun () -> Parse_mini_rule.parse rules_file)
     in
     semgrep_with_patterns lang timed_rules targets skipped;
-    if !profile then save_rules_file_in_tmp ()
-  with exn ->
-    logger#debug "exn before exit %s" (Common.exn_to_s exn);
-    (* if !Flag.debug then save_rules_file_in_tmp (); *)
-    let res =
-      {
-        RP.matches = [];
-        errors = [ E.exn_to_error "" exn ];
-        skipped = [];
-        rule_profiling = None;
-      }
-    in
-    let json = JSON_report.match_results_of_matches_and_errors [] res in
-    let s = SJ.string_of_match_results json in
-    pr s;
-    exit 2
+    if !profile then save_rules_file_in_tmp ();
+    cleanup_hook ()
+  with
+  | exn ->
+      logger#debug "exn before exit %s" (Common.exn_to_s exn);
+      (* if !Flag.debug then save_rules_file_in_tmp (); *)
+      let res =
+        {
+          RP.matches = [];
+          errors = [ E.exn_to_error "" exn ];
+          skipped = [];
+          rule_profiling = None;
+        }
+      in
+      let json = JSON_report.match_results_of_matches_and_errors [] res in
+      let s = SJ.string_of_match_results json in
+      pr s;
+      exit 2
 
 (*****************************************************************************)
 (* Semgrep -config *)
@@ -729,7 +735,9 @@ let semgrep_with_rules (rules, rule_parse_time) files_or_dirs =
    * For now python wrapper passes down all files that should be scanned
    *)
   let xlang = R.xlang_of_string !lang in
-  let files, skipped = xlang_files_of_dirs_or_files xlang files_or_dirs in
+  let files, skipped, cleanup_hook =
+    xlang_files_of_dirs_or_files xlang files_or_dirs
+  in
   logger#info "processing %d files, skipping %d files" (List.length files)
     (List.length skipped);
 
@@ -798,7 +806,8 @@ let semgrep_with_rules (rules, rule_parse_time) files_or_dirs =
   | Text ->
       (* the match has already been printed above. We just print errors here *)
       (* pr (spf "number of errors: %d" (List.length errs)); *)
-      errors |> List.iter (fun err -> pr (E.string_of_error err))
+      errors |> List.iter (fun err -> pr (E.string_of_error err));
+      cleanup_hook ()
 
 let semgrep_with_rules_file rules_file files_or_dirs =
   try
@@ -807,20 +816,21 @@ let semgrep_with_rules_file rules_file files_or_dirs =
       Common.with_time (fun () -> Parse_rule.parse rules_file)
     in
     semgrep_with_rules timed_rules files_or_dirs
-  with exn when !output_format = Json ->
-    logger#debug "exn before exit %s" (Common.exn_to_s exn);
-    let res =
-      {
-        RP.matches = [];
-        errors = [ E.exn_to_error "" exn ];
-        skipped = [];
-        rule_profiling = None;
-      }
-    in
-    let json = JSON_report.match_results_of_matches_and_errors [] res in
-    let s = SJ.string_of_match_results json in
-    pr s;
-    exit 2
+  with
+  | exn when !output_format = Json ->
+      logger#debug "exn before exit %s" (Common.exn_to_s exn);
+      let res =
+        {
+          RP.matches = [];
+          errors = [ E.exn_to_error "" exn ];
+          skipped = [];
+          rule_profiling = None;
+        }
+      in
+      let json = JSON_report.match_results_of_matches_and_errors [] res in
+      let s = SJ.string_of_match_results json in
+      pr s;
+      exit 2
 
 (*****************************************************************************)
 (* Semgrep -e/-f *)
@@ -866,7 +876,9 @@ let semgrep_with_one_pattern lang roots =
     Common.with_time (fun () -> [ rule_of_pattern lang pattern_string pattern ])
   in
 
-  let targets, skipped = Find_target.files_of_dirs_or_files lang roots in
+  let targets, skipped, cleanup_hook =
+    Find_target.files_of_dirs_or_files lang roots
+  in
   match !output_format with
   | Json ->
       (* closer to -rules_file, but no incremental match output *)
@@ -897,7 +909,8 @@ let semgrep_with_one_pattern lang roots =
       let n = List.length !E.g_errors in
       if n > 0 then pr2 (spf "error count: %d" n);
       (* TODO: what's that? *)
-      Experiments.gen_layer_maybe _matching_tokens pattern_string targets
+      Experiments.gen_layer_maybe _matching_tokens pattern_string targets;
+      cleanup_hook ()
 
 (*****************************************************************************)
 (* Checker *)
@@ -923,7 +936,8 @@ let validate_pattern () =
     let lang = lang_of_string !lang in
     let _ = parse_pattern lang s in
     exit 0
-  with _exn -> exit 1
+  with
+  | _exn -> exit 1
 
 (* See also Check_rule.check_files *)
 

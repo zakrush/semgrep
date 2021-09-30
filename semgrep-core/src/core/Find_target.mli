@@ -3,6 +3,8 @@
    language.
 *)
 
+type cleanup_hook = unit -> unit
+
 (*
    Scan a list of folders or files recursively and return a list of files
    in the requested language. This takes care of ignoring undesirable
@@ -27,7 +29,9 @@ val files_of_dirs_or_files :
   ?sort_by_decr_size:bool ->
   Lang.t ->
   Common.path list ->
-  Common.filename list * Semgrep_core_response_t.skipped_target list
+  Common.filename list
+  * Semgrep_core_response_t.skipped_target list
+  * cleanup_hook
 
 (*
    Sort files by decreasing size. This is meant for optimizing

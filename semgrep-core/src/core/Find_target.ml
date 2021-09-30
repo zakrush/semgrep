@@ -28,6 +28,8 @@ let min_whitespace_frequency = 0.07
 *)
 let min_line_frequency = 0.001
 
+type cleanup_hook = unit -> unit
+
 type whitespace_stat = {
   sample_size : int;
   (* size of the block; possibly the whole file *)
@@ -160,6 +162,9 @@ let files_of_dirs_or_files ?(keep_root_files = true)
              Sys.file_exists path && not (Sys.is_directory path))
     else (roots, [])
   in
+  let explicit_targets, copied_fifos =
+    Common.copy_fifos_to_temp explicit_targets
+  in
   let paths = Common.files_of_dir_or_files_no_vcs_nofilter paths in
   let paths, skipped1 = exclude_files_in_skip_lists paths in
   let paths, skipped2 = Guess_lang.inspect_files lang paths in
@@ -176,4 +181,5 @@ let files_of_dirs_or_files ?(keep_root_files = true)
       (fun (a : Resp.skipped_target) b -> String.compare a.path b.path)
       skipped
   in
-  (sorted_paths, sorted_skipped)
+  let cleanup_hook () = List.iter Unix.unlink copied_fifos in
+  (sorted_paths, sorted_skipped, cleanup_hook)
