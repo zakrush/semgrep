@@ -116,6 +116,17 @@ let test_cfg_il file =
              let xs = AST_to_IL.stmt lang (H.funcbody_to_stmt def.fbody) in
              let cfg = CFG_build.cfg_of_stmts xs in
              Display_IL.display_cfg cfg
+         | DefStmt
+             ( _ent,
+               ClassDef
+                 {
+                   cbody =
+                     _, [ FieldStmt { s = DefStmt (_, FuncDef def); _ } ], _;
+                   _;
+                 } ) ->
+             let xs = AST_to_IL.stmt lang (H.funcbody_to_stmt def.fbody) in
+             let cfg = CFG_build.cfg_of_stmts xs in
+             Display_IL.display_cfg cfg
          | _ -> ())
 
 module F2 = IL
