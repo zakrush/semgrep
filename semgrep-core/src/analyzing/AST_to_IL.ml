@@ -87,9 +87,9 @@ let log_fixme kind gany =
   | Impossible ->
       log_error opt_tok "Impossible happened during AST-to-IL translation"
 
-let fixme_exp kind gany eorig =
+let fixme_exp ?partial kind gany eorig =
   log_fixme kind (G.E eorig);
-  { e = FixmeExp (kind, gany); eorig }
+  { e = FixmeExp (kind, gany, partial); eorig }
 
 let fixme_instr kind gany eorig =
   log_fixme kind (G.E eorig);
@@ -579,15 +579,25 @@ and expr_aux env ?(void = false) eorig =
                 ss_for_e3 @ [ mk_s (Instr (mk_i (Assign (lval, e3)) e3orig)) ]
               )));
       lvalexp
-  | G.Xml _ -> todo (G.E eorig)
-  | G.Constructor (_, _) -> todo (G.E eorig)
-  | G.Yield (_, _, _)
+  | G.Yield (tok, Some e1orig, _) ->
+      let e1 = expr env e1orig in
+      todo_partial_exp env tok "yield" e1 eorig
+  | G.Ref (tok, e1orig) ->
+      let e1 = expr env e1orig in
+      todo_partial_exp env tok "ref" e1 eorig
+  | G.Constructor (cname, (tok1, esorig, tok2)) ->
+      let es = esorig |> List.map (fun eiorig -> expr env eiorig) in
+      let partial = mk_e (Composite (CTuple, (tok1, es, tok2))) eorig in
+      todo_partial_exp env tok1
+        (spf "constructor/%s" (G.show_name cname))
+        partial eorig
+  | G.Xml _
+  | G.Yield (_, None, _)
   | G.Await (_, _) ->
       todo (G.E eorig)
   | G.Cast (typ, _, e) ->
       let e = expr env e in
       mk_e (Cast (typ, e)) eorig
-  | G.Ref (_, _) -> todo (G.E eorig)
   | G.Ellipsis _
   | G.TypedMetavar (_, _, _)
   | G.DisjExpr (_, _)
@@ -595,7 +605,16 @@ and expr_aux env ?(void = false) eorig =
   | G.DotAccessEllipsis _ ->
       sgrep_construct (G.E eorig)
   | G.StmtExpr _st -> todo (G.E eorig)
-  | G.OtherExpr (_, _) -> todo (G.E eorig)
+  | G.OtherExpr ((str, tok), xs) ->
+      let es =
+        xs
+        |> List.filter_map (fun x ->
+               match x with
+               | G.E e1orig -> Some (expr env e1orig)
+               | __else__ -> None)
+      in
+      let partial = mk_e (Composite (CTuple, (tok, es, tok))) eorig in
+      todo_partial_exp env tok (spf "other/%s" str) partial eorig
 
 and expr env ?void eorig =
   try expr_aux env ?void eorig
@@ -606,6 +625,12 @@ and expr_opt env = function
       let void = G.Unit (G.fake "void") in
       mk_e (Literal void) (G.L void |> G.e)
   | Some e -> expr env e
+
+and todo_partial_exp env tok str partial eorig =
+  let lval = fresh_lval env (Parse_info.fake_info tok str) in
+  add_stmt env @@ mk_s (Instr (mk_i (Assign (lval, partial)) eorig));
+  let partial = mk_e (Fetch lval) eorig in
+  fixme_exp ToDo (G.E eorig) eorig ~partial
 
 and call_generic env ?(void = false) tok e args =
   let eorig = G.Call (e, args) |> G.e in
@@ -1006,8 +1031,8 @@ let rec stmt_aux env st =
   | G.OtherStmt (G.OS_ThrowNothing, [ G.Tk tok ]) ->
       (* Python's `raise` without arguments *)
       let fake_eorig = G.e (G.L (G.Unit tok)) in
-      let todo_exp = fixme_exp ToDo (G.Tk tok) fake_eorig in
-      [ mk_s (Throw (tok, todo_exp)) ]
+      let etodo = fixme_exp ToDo (G.Tk tok) fake_eorig in
+      [ mk_s (Throw (tok, etodo)) ]
   | G.OtherStmt
       (G.OS_ThrowFrom, [ G.E from; G.S ({ s = G.Throw _; _ } as throw_stmt) ])
     ->
