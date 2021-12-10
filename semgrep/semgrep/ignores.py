@@ -32,6 +32,8 @@ def path_is_relative_to(p1: Path, p2: Path) -> bool:
         return False
 
 
+survives_runs = 0
+
 ## TODO: This files duplicates the .semgrepignore functionality from semgrep-action.
 ## We should ultimately remove this from semgrep-action, and keep it as part of the CLI
 
@@ -49,6 +51,8 @@ class FileIgnore:
         """
         Determines if a single Path survives the ignore filter.
         """
+        global survives_runs
+        survives_runs += 1
         path = path.absolute()
         for p in self._processed_patterns:
             if path.is_dir() and p.endswith("/") and fnmatch.fnmatch(str(path), p[:-1]):

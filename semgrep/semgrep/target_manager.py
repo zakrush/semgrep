@@ -441,7 +441,9 @@ class TargetManager:
         before = time.time()
         targets = self.filtered_files(lang)
         after = time.time()
-        print(f"filtered_files: {after - before}")
+        from semgrep.ignores import survives_runs
+
+        print(f"filtered_files: {after - before}\nsurvives runs: {survives_runs}")
         targets = self.filter_includes(targets, includes)
         targets = self.filter_excludes(targets, excludes)
         targets = self.filter_by_size(targets, self.max_target_bytes)
