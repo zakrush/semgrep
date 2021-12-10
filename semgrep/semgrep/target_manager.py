@@ -141,7 +141,10 @@ class TargetManager:
 
     @staticmethod
     def _expand_dir(
-        curr_dir: Path, language: Language, respect_git_ignore: bool
+        curr_dir: Path,
+        language: Language,
+        respect_git_ignore: bool,
+        file_ignore: Optional[FileIgnore],
     ) -> FrozenSet[Path]:
         """
         Recursively go through a directory and return list of all files with
@@ -196,14 +199,25 @@ class TargetManager:
             res: Set[Path] = set()
             before = time.time()
             for path in paths:
+                if file_ignore and not file_ignore._survives(path):
+                    continue
+
                 if path.is_dir():
                     res.update(
-                        p for ext in definition.exts for p in path.rglob(f"*{ext}")
+                        p
+                        for ext in definition.exts
+                        for p in path.rglob(f"*{ext}")
+                        if (file_ignore._survives(p) if file_ignore else True)
                     )
                     res.update(
                         Path(root) / f
                         for root, _, files in os.walk(str(curr_dir))
                         for f in files
+                        if (
+                            file_ignore._survives(Path(root) / f)
+                            if file_ignore
+                            else True
+                        )
                         if _executes_with_shebang(Path(root) / f, definition.shebangs)
                     )
                 else:
@@ -269,19 +283,26 @@ class TargetManager:
 
     @staticmethod
     def expand_targets(
-        targets: Collection[Path], lang: Language, respect_git_ignore: bool
+        targets: Collection[Path],
+        lang: Language,
+        respect_git_ignore: bool,
+        file_ignore: Optional[FileIgnore],
     ) -> FrozenSet[Path]:
         """
         Explore all directories. Remove duplicates
         """
         expanded: Set[Path] = set()
         for target in targets:
-            if not TargetManager._is_valid_file_or_dir(target):
+            if not TargetManager._is_valid_file_or_dir(target) or (
+                file_ignore and not file_ignore._survives(target)
+            ):
                 continue
 
             if target.is_dir():
                 expanded.update(
-                    TargetManager._expand_dir(target, lang, respect_git_ignore)
+                    TargetManager._expand_dir(
+                        target, lang, respect_git_ignore, file_ignore
+                    )
                 )
             else:
                 expanded.add(target)
@@ -377,7 +398,9 @@ class TargetManager:
         files, directories = partition_set(lambda p: not p.is_dir(), targets)
         explicit_files, _ = partition_set(lambda p: p.is_file(), files)
 
-        targets = self.expand_targets(directories, lang, self.respect_git_ignore)
+        targets = self.expand_targets(
+            directories, lang, self.respect_git_ignore, self.file_ignore
+        )
         targets = self.filter_includes(targets, self.includes)
         targets = self.filter_excludes(targets, [*self.excludes, ".git"])
         targets = self.filter_by_size(targets, self.max_target_bytes)
@@ -415,10 +438,10 @@ class TargetManager:
         in TARGET will bypass this global INCLUDE/EXCLUDE filter. The local INCLUDE/EXCLUDE
         filter is then applied.
         """
+        before = time.time()
         targets = self.filtered_files(lang)
-        targets = (
-            self.file_ignore.filter_paths(targets) if self.file_ignore else targets
-        )
+        after = time.time()
+        print(f"filtered_files: {after - before}")
         targets = self.filter_includes(targets, includes)
         targets = self.filter_excludes(targets, excludes)
         targets = self.filter_by_size(targets, self.max_target_bytes)

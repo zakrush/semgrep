@@ -49,6 +49,7 @@ class FileIgnore:
         """
         Determines if a single Path survives the ignore filter.
         """
+        path = path.absolute()
         for p in self._processed_patterns:
             if path.is_dir() and p.endswith("/") and fnmatch.fnmatch(str(path), p[:-1]):
                 return False
