@@ -199,10 +199,9 @@ class TargetManager:
             res: Set[Path] = set()
             before = time.time()
             for path in paths:
-                if file_ignore and not file_ignore._survives(path):
-                    continue
-
                 if path.is_dir():
+                    if file_ignore and not file_ignore._survives(path):
+                        continue
                     res.update(
                         p
                         for ext in definition.exts
@@ -222,8 +221,12 @@ class TargetManager:
                     )
                 else:
                     if any(str(path).endswith(ext) for ext in definition.exts):
+                        if file_ignore and not file_ignore._survives(path):
+                            continue
                         res.add(path)
                     if _executes_with_shebang(path, definition.shebangs):
+                        if file_ignore and not file_ignore._survives(path):
+                            continue
                         res.add(path)
             logger.debug(
                 f"Scanned file system for matching files in {time.time() - before} s"
