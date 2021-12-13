@@ -296,9 +296,7 @@ class TargetManager:
         """
         expanded: Set[Path] = set()
         for target in targets:
-            if not TargetManager._is_valid_file_or_dir(target) or (
-                file_ignore and not file_ignore._survives(target)
-            ):
+            if not TargetManager._is_valid_file_or_dir(target):
                 continue
 
             if target.is_dir():
@@ -441,12 +439,7 @@ class TargetManager:
         in TARGET will bypass this global INCLUDE/EXCLUDE filter. The local INCLUDE/EXCLUDE
         filter is then applied.
         """
-        before = time.time()
         targets = self.filtered_files(lang)
-        after = time.time()
-        from semgrep.ignores import survives_runs
-
-        print(f"filtered_files: {after - before}\nsurvives runs: {survives_runs}")
         targets = self.filter_includes(targets, includes)
         targets = self.filter_excludes(targets, excludes)
         targets = self.filter_by_size(targets, self.max_target_bytes)
