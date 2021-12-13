@@ -306,6 +306,8 @@ class TargetManager:
                     )
                 )
             else:
+                if file_ignore and not file_ignore._survives(target):
+                    continue
                 expanded.add(target)
 
         return frozenset(expanded)
