@@ -1023,6 +1023,8 @@ and other_stmt_with_stmt_operator =
   | OSWS_UncheckedBlock
   (* C/C++/cpp *)
   | OSWS_Iterator
+  (* Terraform block *)
+  | OSWS_HclBlock of ident
   (* e.g., Assembly in Solidity *)
   | OSWS_Todo
 
