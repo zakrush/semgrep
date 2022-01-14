@@ -600,7 +600,28 @@ and map_body_top (env : env) (xs : CST.body) : stmt list =
           G.exprstmt (G.Ellipsis t |> G.e))
     xs
 
-let map_config_file (env : env) (x : CST.config_file) : any =
+let map_config_file ~pattern (env : env) (x : CST.config_file) : any =
+  let wrap_in_fdef xs =
+    if not pattern then
+      let ent =
+        {
+          name = EN (Id (("HCL", fake "HCL"), empty_id_info ()));
+          attrs = [];
+          tparams = [];
+        }
+      in
+      let def =
+        FuncDef
+          {
+            fkind = (Function, fake "HCL");
+            fparams = [];
+            frettype = None;
+            fbody = FBStmt (s (Block (fake_bracket xs)));
+          }
+      in
+      [ s (DefStmt (ent, def)) ]
+    else xs
+  in
   match x with
   | `Opt_choice_body opt -> (
       match opt with
@@ -608,10 +629,10 @@ let map_config_file (env : env) (x : CST.config_file) : any =
           match x with
           | `Body x ->
               let bd = map_body_top env x in
-              Pr bd
+              Pr (wrap_in_fdef bd)
           | `Obj x ->
               let x = map_object_ env x in
-              Pr [ G.exprstmt x ])
+              Pr (wrap_in_fdef [ G.exprstmt x ]))
       | None -> Pr [])
   | `Semg_exp (v1, v2) ->
       let _v1 = (* "__SEMGREP_EXPRESSION" *) token env v1 in
@@ -626,7 +647,7 @@ let parse file =
     (fun () -> Tree_sitter_hcl.Parse.file file)
     (fun cst ->
       let env = { H.file; conv = H.line_col_to_pos file; extra = () } in
-      match map_config_file env cst with
+      match map_config_file ~pattern:false env cst with
       | Pr xs -> xs
       | _ -> failwith "not a program")
 
@@ -645,7 +666,7 @@ let parse_pattern str =
     (fun cst ->
       let file = "<pattern>" in
       let env = { H.file; conv = Hashtbl.create 0; extra = () } in
-      match map_config_file env cst with
+      match map_config_file ~pattern:true env cst with
       | Pr [ { s = ExprStmt (e, _); _ } ] -> G.E e
       | Pr [ x ] -> G.S x
       (* TODO? depending on the shape of xs, we should sometimes return
