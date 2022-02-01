@@ -28,9 +28,9 @@ jobs:
       - name: Prepare repo for snapshot commit
         if: ${{ failure() }}
         run: |
-          # the commit step that follows will fail if the pfff submodule is initialized; perhaps because of the github token's permissions
-          # so here we remove the submodules
-          git submodule deinit --all
+          # the commit step that follows will fail to fetch the pfff submodule; perhaps because of the github token's permissions
+          # so here we disable recursive fetching
+          git config fetch.recurseSubmodules false
       - name: Commit snapshot updates
         id: snapshot-commit
         if: ${{ failure() && github.event_name == 'pull_request' }}
