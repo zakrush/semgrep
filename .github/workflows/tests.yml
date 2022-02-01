@@ -37,6 +37,8 @@ jobs:
         if: ${{ failure() && steps.snapshot-commit.outputs.pushed == 'true' }}
         run: |
           gh pr comment ${{ github.event.pull_request.number }} --body '**THIS IS THE FAKE TEST JOB** :camera_with_flash: The pytest shapshots changed in your PR: https://github.com/returntocorp/semgrep/commit/${{ steps.snapshot-commit.outputs.commit_long_sha }}. Review the diffs and run `git fetch origin && git cherry-pick ${{ steps.snapshot-commit.outputs.commit_long_sha }}` to accept the updates.'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-core:
     name: Build and Test semgrep-core
