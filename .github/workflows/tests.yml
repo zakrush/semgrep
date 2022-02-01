@@ -28,8 +28,9 @@ jobs:
       - name: Prepare repo for snapshot commit
         if: ${{ failure() }}
         run: |
-          # the commit step that follows will fail to fetch the pfff submodule; perhaps because of the github token's permissions
-          # so here we disable recursive fetching
+          # the commit step that follows will fail to fetch the pfff submodule
+          # (perhaps because of the github token's permissions)
+          # so we disable recursive fetching
           git config fetch.recurseSubmodules false
       - name: Commit snapshot updates
         id: snapshot-commit
@@ -49,10 +50,7 @@ jobs:
           echo "1. Review the changes at https://github.com/returntocorp/semgrep/commit/${{ steps.snapshot-commit.outputs.commit_long_sha }}" >> /tmp/message.txt
           echo "2. Accept the new snapshots with
           echo "" >> /tmp/message.txt
-          # no escape from escape hell
-          echo "   \`\`\`bash" >> /tmp/message.txt
-          echo "   git fetch origin && git merge origin/snapshot-updates-${{ github.run_id }}-${{ github.run_attempt }} && git push" >> /tmp/message.txt
-          echo "   \`\`\`" >> /tmp/message.txt
+          echo "       git fetch origin && git merge origin/snapshot-updates-${{ github.run_id }}-${{ github.run_attempt }} && git push" >> /tmp/message.txt
           gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/message.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
