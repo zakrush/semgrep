@@ -42,16 +42,17 @@ jobs:
       - name: Comment about any snapshot updates
         if: ${{ failure() && steps.snapshot-commit.outputs.pushed == 'true' }}
         run: |
-          echo '**THIS IS THE FAKE TEST JOB**' >> /tmp/message.txt
-          echo '' >> /tmp/message.txt
-          echo ':camera_flash: The pytest shapshots changed in your PR' >> /tmp/message.txt
-          echo '' >> /tmp/message.txt
-          echo '1. Review the changes at https://github.com/returntocorp/semgrep/commit/${{ steps.snapshot-commit.outputs.commit_long_sha }}' >> /tmp/message.txt
-          echo '2. Accept the new snapshots with
-          echo '' >> /tmp/message.txt
-          echo '  ```bash' >> /tmp/message.txt
-          echo '  git fetch origin && git merge origin/snapshot-updates-${{ github.run_id }}-${{ github.run_attempt }} && git push' >> /tmp/message.txt
-          echo '  ```' >> /tmp/message.txt
+          echo "**THIS IS THE FAKE TEST JOB**" >> /tmp/message.txt
+          echo " >> /tmp/message.txt
+          echo ":camera_flash: The pytest shapshots changed in your PR" >> /tmp/message.txt
+          echo " >> /tmp/message.txt
+          echo "1. Review the changes at https://github.com/returntocorp/semgrep/commit/${{ steps.snapshot-commit.outputs.commit_long_sha }}" >> /tmp/message.txt
+          echo "2. Accept the new snapshots with
+          echo " >> /tmp/message.txt
+          # no escape from escape hell
+          echo "  \\\`\\\`\\\`bash" >> /tmp/message.txt
+          echo "  git fetch origin && git merge origin/snapshot-updates-${{ github.run_id }}-${{ github.run_attempt }} && git push" >> /tmp/message.txt
+          echo "  \\\`\\\`\\\`" >> /tmp/message.txt
           gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/message.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
