@@ -20,11 +20,16 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
-          submodules: false
+          submodules: true
       - name: Fake pytest
         run: |
           echo "this is new" > shapshot.txt
           exit 1
+      - name: Prepare repo for snapshot commit
+        if: ${{ failure() }}
+        run: |
+          # the following commit step errors if the pfff submodule is initialized; perhaps because of the github token's permissions
+          git submodule deinit .
       - name: Commit snapshot updates
         id: snapshot-commit
         if: ${{ failure() && github.event_name == 'pull_request' }}
@@ -41,7 +46,7 @@ jobs:
           echo ":camera_flash: The pytest shapshots changed in your PR" >> /tmp/message.txt
           echo "" >> /tmp/message.txt
           echo "1. Review the changes at https://github.com/returntocorp/semgrep/commit/${{ steps.snapshot-commit.outputs.commit_long_sha }}" >> /tmp/message.txt
-          echo "2. Accept the new snapshots with `git fetch origin && git cherry-pick ${{ steps.snapshot-commit.outputs.commit_long_sha }} && git push`" >> /tmp/message.txt
+          echo '2. Accept the new snapshots with `git fetch origin && git cherry-pick ${{ steps.snapshot-commit.outputs.commit_long_sha }} && git push`' >> /tmp/message.txt
           gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/message.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
