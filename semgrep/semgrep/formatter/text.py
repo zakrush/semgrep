@@ -90,9 +90,9 @@ class TextFormatter(BaseFormatter):
                             end_line,
                             end_col,
                         )
-                        line_number = with_color("green", f"{start_line + i}")
+                        line_number = with_color("green", f"{start_line + i + 1}")
                     else:
-                        line_number = f"{start_line + i}"
+                        line_number = f"{start_line + i + 1}"
 
                     if (
                         per_line_max_chars_limit
