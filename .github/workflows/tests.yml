@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
   pull_request:
     paths-ignore:
-      - '**.md'
+      - "**.md"
   push:
     branches:
       - develop
     paths-ignore:
-      - '**.md'
+      - "**.md"
 
 jobs:
   build-core:
@@ -107,6 +107,9 @@ jobs:
     name: semgrep unit and e2e tests
     runs-on: ubuntu-latest
     needs: [build-core]
+    permissions:
+      contents: write
+      pull-requests: write
     strategy:
       matrix:
         python: [3.7]
@@ -137,7 +140,7 @@ jobs:
         run: |
           cd semgrep
           export PATH=/github/home/.local/bin:$PATH
-          pipenv run pytest --ignore=tests/qa/test_public_repos.py -n auto -vv --tb=short --durations=0 tests/
+          pipenv run pytest --ignore=tests/qa/test_public_repos.py -n auto -vv --tb=short --durations=0 --snapshot-update tests/
       - name: Generate cheatsheets for semgrep.dev
         run: ./scripts/generate-cheatsheet
       - name: Upload artifacts
@@ -145,6 +148,17 @@ jobs:
         with:
           name: cheatsheet
           path: cheatsheet.json
+      - name: Commit snapshot updates
+        id: snapshot-commit
+        if: ${{ failure() && github.event_name == 'pull_request' }}
+        uses: EndBug/add-and-commit@v8
+        with:
+          commit-message: "Update pytest snapshots"
+          new_branch: snapshot-updates-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Comment about any snapshot updates
+        if: ${{ steps.snapshot-commit.outputs.updated == 'true' }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body ':camera_with_flash: The pytest shapshots changed in your PR: https://github.com/returntocorp/semgrep/commit/${{ steps.snapshot-commit.outputs.commit_long_sha }}. Review the diffs and run `git fetch origin && git cherry-pick ${{ steps.snapshot-commit.outputs.commit_long_sha }}` to accept the updates.'
 
   public-repos-test:
     name: run semgrep on public repos
