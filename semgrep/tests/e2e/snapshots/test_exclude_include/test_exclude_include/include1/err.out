@@ -1,4 +1,8 @@
 including files:
 - included
 Running 4 rules...
+
+  0%|          |0/2
+ 50%|█████     |1/2
+ 50%|█████     |1/2
 ran 4 rules on 2 files: 2 findings
