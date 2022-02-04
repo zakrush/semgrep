@@ -1,1 +1,4 @@
+
+  0%|          |0/2
+100%|██████████|2/2
 ran 1 rules on 2 files: 2 findings
