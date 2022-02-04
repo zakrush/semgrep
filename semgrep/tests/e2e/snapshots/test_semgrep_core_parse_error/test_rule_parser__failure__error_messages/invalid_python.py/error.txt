@@ -4,11 +4,17 @@ rules:
 - rules.assert-eqeq-is-ok
 - rules.eqeq-is-bad
 No .semgrepignore found. Using default .semgrepignore rules. See the docs for the list of default ignores: https://semgrep.dev/docs/cli-usage/#ignoring-files
-[WARN] Semgrep Core — Syntax error
+Error while matching: Semgrep encountered an internal error.
+semgrep-core exit code: 0
+semgrep-core command: /home/runner/work/semgrep/semgrep/semgrep/semgrep/bin/semgrep-core -json -rules /tmp/tmph_zrn9l4.yaml -j 2 -targets /tmp/tmpeo9nnm87 -timeout 30 -max_memory 0 -json_time -use_parsing_cache /tmp/tmpqlytyofc -fast
+unexpected non-json output while invoking semgrep-core:
+--- semgrep-core stdout ---
+done{"matches":[],"errors":[{"error_type":"Syntax error","severity":"warning","location":{"path":"targets/bad/invalid_python.py","start":{"line":1,"col":11,"offset":10},"end":{"line":1,"col":16,"offset":15},"lines":["def foo(a)"]},"message":"`\n    ` was unexpected"}],"skipped":[],"stats":{"okfiles":0,"errorfiles":1},"time":{"targets":[{"path":"targets/bad/invalid_python.py","rule_times":[],"run_time":0.0007009506225585938}],"rules":["rules.assert-eqeq-is-ok","rules.eqeq-is-bad"],"rules_parse_time":0.006279945373535156}}
+--- end semgrep-core stdout ---
+--- semgrep-core stderr ---
+Existing stack limits: Soft: 16777216, Hard: -1
+Trying to set soft limit to 16777216
+Set stack limit to 16777216, -1
+--- end semgrep-core stderr ---
 An error occurred while invoking the Semgrep engine. Please help us fix this by creating an issue at https://github.com/returntocorp/semgrep
-
-At line targets/bad/invalid_python.py:1: `
-    ` was unexpected
-
-ran 2 rules on 1 files: 0 findings
 Not sending pseudonymous metrics since metrics are configured to AUTO and server usage is False

@@ -1,26 +1,11 @@
 {
-  "errors": [],
-  "results": [
+  "errors": [
     {
-      "check_id": "-",
-      "end": {
-        "col": 2,
-        "line": 1,
-        "offset": 1
-      },
-      "extra": {
-        "is_ignored": false,
-        "lines": "a",
-        "message": "a",
-        "metadata": {},
-        "metavars": {},
-        "severity": "ERROR"
-      },
-      "start": {
-        "col": 1,
-        "line": 1,
-        "offset": 0
-      }
+      "code": 2,
+      "level": "error",
+      "message": "Error while matching: Semgrep encountered an internal error.\nsemgrep-core exit code: 0\nsemgrep-core command: /home/runner/work/semgrep/semgrep/semgrep/semgrep/bin/semgrep-core -json -rules /tmp/tmp978zrli8.yaml -j 2 -targets /tmp/tmpfesrstto -timeout 30 -max_memory 0 -json_time -use_parsing_cache /tmp/tmpad1is3ax -fast\nunexpected non-json output while invoking semgrep-core:\n--- semgrep-core stdout ---\ndone{\"matches\":[{\"rule_id\":\"-\",\"location\":{\"path\":\"/tmp/tmpg8if1f7y/stdin\",\"start\":{\"line\":1,\"col\":1,\"offset\":0},\"end\":{\"line\":1,\"col\":2,\"offset\":1},\"lines\":[]},\"extra\":{\"message\":\"a\",\"metavars\":{}}},{\"rule_id\":\"-\",\"location\":{\"path\":\"/tmp/tmpg8if1f7y/stdin\",\"start\":{\"line\":1,\"col\":1,\"offset\":0},\"end\":{\"line\":1,\"col\":2,\"offset\":1},\"lines\":[]},\"extra\":{\"message\":\"a\",\"metavars\":{}}}],\"errors\":[],\"skipped\":[],\"stats\":{\"okfiles\":2,\"errorfiles\":0},\"time\":{\"targets\":[{\"path\":\"/tmp/tmpg8if1f7y/stdin\",\"rule_times\":[{\"rule_id\":\"-\",\"parse_time\":0.0007348060607910156,\"match_time\":0.00011682510375976562}],\"run_time\":0.0012428760528564453},{\"path\":\"/tmp/tmpg8if1f7y/stdin\",\"rule_times\":[{\"rule_id\":\"-\",\"parse_time\":0.0005440711975097656,\"match_time\":0.00011205673217773438}],\"run_time\":0.001016855239868164}],\"rules\":[\"-\"],\"rules_parse_time\":0.000988006591796875}}\n--- end semgrep-core stdout ---\n--- semgrep-core stderr ---\nExisting stack limits: Soft: 16777216, Hard: -1\nTrying to set soft limit to 16777216\nSet stack limit to 16777216, -1\n--- end semgrep-core stderr ---\nAn error occurred while invoking the Semgrep engine. Please help us fix this by creating an issue at https://github.com/returntocorp/semgrep",
+      "type": "SemgrepError"
     }
-  ]
+  ],
+  "results": []
 }

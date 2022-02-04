@@ -1,2 +1,5 @@
 Running 4 rules...
-ran 4 rules on 14 files: 2 findings
+
+  0%|          |0/14
+  7%|▋         |1/14
+  7%|▋         |1/14

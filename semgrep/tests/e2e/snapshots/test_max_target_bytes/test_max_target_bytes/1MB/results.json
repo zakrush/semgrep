@@ -1,87 +1,11 @@
 {
-  "errors": [],
-  "results": [
+  "errors": [
     {
-      "check_id": "rules.eqeq-is-bad",
-      "end": {
-        "col": 26,
-        "line": 3,
-        "offset": 69
-      },
-      "extra": {
-        "is_ignored": false,
-        "lines": "    return a + b == a + b",
-        "message": "useless comparison operation `a + b == a + b` or `a + b != a + b`; possible bug?",
-        "metadata": {
-          "shortlink": "https://sg.run/xyz1"
-        },
-        "metavars": {
-          "$X": {
-            "abstract_content": "a+b",
-            "end": {
-              "col": 17,
-              "line": 3,
-              "offset": 60
-            },
-            "start": {
-              "col": 12,
-              "line": 3,
-              "offset": 55
-            },
-            "unique_id": {
-              "md5sum": "<masked in tests>",
-              "type": "AST"
-            }
-          }
-        },
-        "severity": "ERROR"
-      },
-      "path": "targets/basic/stupid.py",
-      "start": {
-        "col": 12,
-        "line": 3,
-        "offset": 55
-      }
-    },
-    {
-      "check_id": "rules.javascript-basic-eqeq-bad",
-      "end": {
-        "col": 19,
-        "line": 3,
-        "offset": 67
-      },
-      "extra": {
-        "is_ignored": false,
-        "lines": "console.log(x == x)",
-        "message": "useless comparison",
-        "metadata": {},
-        "metavars": {
-          "$X": {
-            "abstract_content": "x",
-            "end": {
-              "col": 14,
-              "line": 3,
-              "offset": 62
-            },
-            "start": {
-              "col": 13,
-              "line": 3,
-              "offset": 61
-            },
-            "unique_id": {
-              "sid": 1,
-              "type": "id"
-            }
-          }
-        },
-        "severity": "ERROR"
-      },
-      "path": "targets/basic/stupid.js",
-      "start": {
-        "col": 13,
-        "line": 3,
-        "offset": 61
-      }
+      "code": 2,
+      "level": "error",
+      "message": "Error while matching: Semgrep encountered an internal error.\nsemgrep-core exit code: 0\nsemgrep-core command: /home/runner/work/semgrep/semgrep/semgrep/semgrep/bin/semgrep-core -json -rules /tmp/tmp9x9gh6n4.yaml -j 2 -targets /tmp/tmp9tbaxex7 -timeout 30 -max_memory 0 -json_time -use_parsing_cache /tmp/tmpu3b_5jk4 -fast\nunexpected non-json output while invoking semgrep-core:\n--- semgrep-core stdout ---\ndone{\"matches\":[{\"rule_id\":\"rules.javascript-basic-eqeq-bad\",\"location\":{\"path\":\"targets/basic/stupid.js\",\"start\":{\"line\":3,\"col\":13,\"offset\":61},\"end\":{\"line\":3,\"col\":19,\"offset\":67},\"lines\":[]},\"extra\":{\"message\":\"useless comparison\",\"metavars\":{\"$X\":{\"start\":{\"line\":3,\"col\":13,\"offset\":61},\"end\":{\"line\":3,\"col\":14,\"offset\":62},\"abstract_content\":\"x\",\"unique_id\":{\"type\":\"id\",\"sid\":1}}}}},{\"rule_id\":\"rules.eqeq-is-bad\",\"location\":{\"path\":\"targets/basic/stupid.py\",\"start\":{\"line\":3,\"col\":12,\"offset\":55},\"end\":{\"line\":3,\"col\":26,\"offset\":69},\"lines\":[]},\"extra\":{\"message\":\"useless comparison operation `$X == $X` or `$X != $X`; possible bug?\",\"metavars\":{\"$X\":{\"start\":{\"line\":3,\"col\":12,\"offset\":55},\"end\":{\"line\":3,\"col\":17,\"offset\":60},\"abstract_content\":\"a+b\",\"unique_id\":{\"type\":\"AST\",\"md5sum\":\"0200a6de6f260d6854437df422282e0a\"}}}}}],\"errors\":[],\"skipped\":[{\"path\":\"targets/basic/metavariable-comparison-base.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.assert-eqeq-is-ok'\",\"rule_id\":\"rules.assert-eqeq-is-ok\"},{\"path\":\"targets/basic/metavariable-comparison-base.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.python37-compatability-os-module'\",\"rule_id\":\"rules.python37-compatability-os-module\"},{\"path\":\"targets/basic/metavariable-comparison-strip.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.assert-eqeq-is-ok'\",\"rule_id\":\"rules.assert-eqeq-is-ok\"},{\"path\":\"targets/basic/metavariable-comparison-strip.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.python37-compatability-os-module'\",\"rule_id\":\"rules.python37-compatability-os-module\"},{\"path\":\"targets/basic/regex.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.assert-eqeq-is-ok'\",\"rule_id\":\"rules.assert-eqeq-is-ok\"},{\"path\":\"targets/basic/regex.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.python37-compatability-os-module'\",\"rule_id\":\"rules.python37-compatability-os-module\"},{\"path\":\"targets/basic/metavariable-comparison-bad-content.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.assert-eqeq-is-ok'\",\"rule_id\":\"rules.assert-eqeq-is-ok\"},{\"path\":\"targets/basic/metavariable-comparison-bad-content.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.python37-compatability-os-module'\",\"rule_id\":\"rules.python37-compatability-os-module\"},{\"path\":\"targets/basic/metavariable-regex-multi-rule.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.assert-eqeq-is-ok'\",\"rule_id\":\"rules.assert-eqeq-is-ok\"},{\"path\":\"targets/basic/metavariable-regex-multi-rule.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.python37-compatability-os-module'\",\"rule_id\":\"rules.python37-compatability-os-module\"},{\"path\":\"targets/basic/metavariable-regex.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.assert-eqeq-is-ok'\",\"rule_id\":\"rules.assert-eqeq-is-ok\"},{\"path\":\"targets/basic/metavariable-regex.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.python37-compatability-os-module'\",\"rule_id\":\"rules.python37-compatability-os-module\"},{\"path\":\"targets/basic/metavariable-comparison.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.assert-eqeq-is-ok'\",\"rule_id\":\"rules.assert-eqeq-is-ok\"},{\"path\":\"targets/basic/metavariable-comparison.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.python37-compatability-os-module'\",\"rule_id\":\"rules.python37-compatability-os-module\"},{\"path\":\"targets/basic/metavariable-regex-multi-regex.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.assert-eqeq-is-ok'\",\"rule_id\":\"rules.assert-eqeq-is-ok\"},{\"path\":\"targets/basic/metavariable-regex-multi-regex.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.python37-compatability-os-module'\",\"rule_id\":\"rules.python37-compatability-os-module\"},{\"path\":\"targets/basic/inside.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.assert-eqeq-is-ok'\",\"rule_id\":\"rules.assert-eqeq-is-ok\"},{\"path\":\"targets/basic/inside.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.python37-compatability-os-module'\",\"rule_id\":\"rules.python37-compatability-os-module\"},{\"path\":\"targets/basic/stupid.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.python37-compatability-os-module'\",\"rule_id\":\"rules.python37-compatability-os-module\"},{\"path\":\"targets/basic/nosem.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.assert-eqeq-is-ok'\",\"rule_id\":\"rules.assert-eqeq-is-ok\"},{\"path\":\"targets/basic/nosem.py\",\"reason\":\"irrelevant_rule\",\"details\":\"target doesn't contain some elements required by rule 'rules.python37-compatability-os-module'\",\"rule_id\":\"rules.python37-compatability-os-module\"}],\"stats\":{\"okfiles\":14,\"errorfiles\":0},\"time\":{\"targets\":[{\"path\":\"targets/basic/metavariable-comparison-base.py\",\"rule_times\":[{\"rule_id\":\"rules.eqeq-is-bad\",\"parse_time\":0.00015807151794433594,\"match_time\":8.106231689453125e-05}],\"run_time\":0.000286102294921875},{\"path\":\"targets/basic/metavariable-comparison-strip.py\",\"rule_times\":[{\"rule_id\":\"rules.eqeq-is-bad\",\"parse_time\":0.0001430511474609375,\"match_time\":8.20159912109375e-05}],\"run_time\":0.00027108192443847656},{\"path\":\"targets/basic/regex.py\",\"rule_times\":[{\"rule_id\":\"rules.eqeq-is-bad\",\"parse_time\":0.0001850128173828125,\"match_time\":8.511543273925781e-05}],\"run_time\":0.0003170967102050781},{\"path\":\"targets/basic/metavariable-comparison-bad-content.py\",\"rule_times\":[{\"rule_id\":\"rules.eqeq-is-bad\",\"parse_time\":0.0001480579376220703,\"match_time\":8.58306884765625e-05}],\"run_time\":0.0002849102020263672},{\"path\":\"targets/basic/stupid.js\",\"rule_times\":[{\"rule_id\":\"rules.javascript-basic-eqeq-bad\",\"parse_time\":0.00030493736267089844,\"match_time\":0.0007009506225585938}],\"run_time\":0.001026153564453125},{\"path\":\"targets/basic/metavariable-regex-multi-rule.py\",\"rule_times\":[{\"rule_id\":\"rules.eqeq-is-bad\",\"parse_time\":0.00025200843811035156,\"match_time\":8.893013000488281e-05}],\"run_time\":0.0003871917724609375},{\"path\":\"targets/basic/metavariable-regex.py\",\"rule_times\":[{\"rule_id\":\"rules.eqeq-is-bad\",\"parse_time\":0.0001919269561767578,\"match_time\":0.0007641315460205078}],\"run_time\":0.0010251998901367188},{\"path\":\"targets/basic/metavariable-comparison.py\",\"rule_times\":[{\"rule_id\":\"rules.eqeq-is-bad\",\"parse_time\":0.0001800060272216797,\"match_time\":0.00016117095947265625}],\"run_time\":0.00040078163146972656},{\"path\":\"targets/basic/metavariable-regex-multi-regex.py\",\"rule_times\":[{\"rule_id\":\"rules.eqeq-is-bad\",\"parse_time\":0.00020694732666015625,\"match_time\":0.0001800060272216797}],\"run_time\":0.0004830360412597656},{\"path\":\"targets/basic/inside.py\",\"rule_times\":[{\"rule_id\":\"rules.eqeq-is-bad\",\"parse_time\":0.0004780292510986328,\"match_time\":0.00020313262939453125}],\"run_time\":0.0007488727569580078},{\"path\":\"targets/basic/stupid.py\",\"rule_times\":[{\"rule_id\":\"rules.assert-eqeq-is-ok\",\"parse_time\":0.0009400844573974609,\"match_time\":6.604194641113281e-05},{\"rule_id\":\"rules.eqeq-is-bad\",\"parse_time\":0.0,\"match_time\":0.0002601146697998047}],\"run_time\":0.0023000240325927734},{\"path\":\"targets/basic/nosem.js\",\"rule_times\":[{\"rule_id\":\"rules.javascript-basic-eqeq-bad\",\"parse_time\":0.0010848045349121094,\"match_time\":0.00014400482177734375}],\"run_time\":0.0012898445129394531},{\"path\":\"targets/basic/nosem.py\",\"rule_times\":[{\"rule_id\":\"rules.eqeq-is-bad\",\"parse_time\":0.0006070137023925781,\"match_time\":0.0006661415100097656}],\"run_time\":0.001767873764038086},{\"path\":\"targets/basic/nested-patterns.js\",\"rule_times\":[{\"rule_id\":\"rules.javascript-basic-eqeq-bad\",\"parse_time\":0.0011029243469238281,\"match_time\":0.00019311904907226562}],\"run_time\":0.0014469623565673828}],\"rules\":[\"rules.assert-eqeq-is-ok\",\"rules.eqeq-is-bad\",\"rules.python37-compatability-os-module\",\"rules.javascript-basic-eqeq-bad\"],\"rules_parse_time\":0.008208036422729492}}\n--- end semgrep-core stdout ---\n--- semgrep-core stderr ---\nExisting stack limits: Soft: 16777216, Hard: -1\nTrying to set soft limit to 16777216\nSet stack limit to 16777216, -1\n--- end semgrep-core stderr ---\nAn error occurred while invoking the Semgrep engine. Please help us fix this by creating an issue at https://github.com/returntocorp/semgrep",
+      "type": "SemgrepError"
     }
-  ]
+  ],
+  "results": []
 }

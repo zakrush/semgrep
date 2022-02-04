@@ -1,45 +1,11 @@
 {
-  "errors": [],
-  "results": [
+  "errors": [
     {
-      "check_id": "rules.javascript-basic-eqeq-bad",
-      "end": {
-        "col": 19,
-        "line": 3,
-        "offset": 30
-      },
-      "extra": {
-        "is_ignored": false,
-        "lines": "console.log(x == x)",
-        "message": "useless comparison",
-        "metadata": {},
-        "metavars": {
-          "$X": {
-            "abstract_content": "x",
-            "end": {
-              "col": 14,
-              "line": 3,
-              "offset": 25
-            },
-            "start": {
-              "col": 13,
-              "line": 3,
-              "offset": 24
-            },
-            "unique_id": {
-              "sid": 1,
-              "type": "id"
-            }
-          }
-        },
-        "severity": "ERROR"
-      },
-      "path": "targets/exclude_include/included/included.js",
-      "start": {
-        "col": 13,
-        "line": 3,
-        "offset": 24
-      }
+      "code": 2,
+      "level": "error",
+      "message": "Error while matching: Semgrep encountered an internal error.\nsemgrep-core exit code: 0\nsemgrep-core command: /home/runner/work/semgrep/semgrep/semgrep/semgrep/bin/semgrep-core -json -rules /tmp/tmp5y75k92k.yaml -j 2 -targets /tmp/tmpmo3nm0pv -timeout 30 -max_memory 0 -json_time -use_parsing_cache /tmp/tmpga_r_1j9 -fast\nunexpected non-json output while invoking semgrep-core:\n--- semgrep-core stdout ---\ndone{\"matches\":[{\"rule_id\":\"rules.javascript-basic-eqeq-bad\",\"location\":{\"path\":\"targets/exclude_include/included/included.js\",\"start\":{\"line\":3,\"col\":13,\"offset\":24},\"end\":{\"line\":3,\"col\":19,\"offset\":30},\"lines\":[]},\"extra\":{\"message\":\"useless comparison\",\"metavars\":{\"$X\":{\"start\":{\"line\":3,\"col\":13,\"offset\":24},\"end\":{\"line\":3,\"col\":14,\"offset\":25},\"abstract_content\":\"x\",\"unique_id\":{\"type\":\"id\",\"sid\":1}}}}}],\"errors\":[],\"skipped\":[],\"stats\":{\"okfiles\":1,\"errorfiles\":0},\"time\":{\"targets\":[{\"path\":\"targets/exclude_include/included/included.js\",\"rule_times\":[{\"rule_id\":\"rules.javascript-basic-eqeq-bad\",\"parse_time\":0.0009181499481201172,\"match_time\":0.0001900196075439453}],\"run_time\":0.0012900829315185547}],\"rules\":[\"rules.assert-eqeq-is-ok\",\"rules.eqeq-is-bad\",\"rules.python37-compatability-os-module\",\"rules.javascript-basic-eqeq-bad\"],\"rules_parse_time\":0.007200002670288086}}\n--- end semgrep-core stdout ---\n--- semgrep-core stderr ---\nExisting stack limits: Soft: 16777216, Hard: -1\nTrying to set soft limit to 16777216\nSet stack limit to 16777216, -1\n--- end semgrep-core stderr ---\nAn error occurred while invoking the Semgrep engine. Please help us fix this by creating an issue at https://github.com/returntocorp/semgrep",
+      "type": "SemgrepError"
     }
-  ]
+  ],
+  "results": []
 }

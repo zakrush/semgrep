@@ -1,4 +1,11 @@
 {
-  "errors": [],
+  "errors": [
+    {
+      "code": 2,
+      "level": "error",
+      "message": "Error while matching: Semgrep encountered an internal error.\nsemgrep-core exit code: 0\nsemgrep-core command: /home/runner/work/semgrep/semgrep/semgrep/semgrep/bin/semgrep-core -json -rules /tmp/tmp0zc84j5v.yaml -j 2 -targets /tmp/tmpxcyxhoro -timeout 30 -max_memory 0 -json_time -use_parsing_cache /tmp/tmpar8kpg73 -fast\nunexpected non-json output while invoking semgrep-core:\n--- semgrep-core stdout ---\ndone{\"matches\":[],\"errors\":[],\"skipped\":[],\"stats\":{\"okfiles\":0,\"errorfiles\":0},\"time\":{\"targets\":[],\"rules\":[\"rules.assert-eqeq-is-ok\",\"rules.eqeq-is-bad\",\"rules.python37-compatability-os-module\",\"rules.javascript-basic-eqeq-bad\"],\"rules_parse_time\":0.007536888122558594}}\n--- end semgrep-core stdout ---\n--- semgrep-core stderr ---\nExisting stack limits: Soft: 16777216, Hard: -1\nTrying to set soft limit to 16777216\nSet stack limit to 16777216, -1\n--- end semgrep-core stderr ---\nAn error occurred while invoking the Semgrep engine. Please help us fix this by creating an issue at https://github.com/returntocorp/semgrep",
+      "type": "SemgrepError"
+    }
+  ],
   "results": []
 }
