@@ -1,4 +1,8 @@
 excluding files:
 - excluded.*
 Running 4 rules...
+
+  0%|          |0/2
+|          |3/?    
+|          |3/?
 ran 4 rules on 2 files: 2 findings
