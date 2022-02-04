@@ -1,2 +1,6 @@
 Running 4 rules...
+
+  0%|          | 0/14 [00:00<?, ?it/s]
+  7%|▋         | 1/14 [00:00<00:02,  5.94it/s]
+  7%|▋         | 1/14 [00:00<00:02,  5.81it/s]
 ran 4 rules on 14 files: 2 findings

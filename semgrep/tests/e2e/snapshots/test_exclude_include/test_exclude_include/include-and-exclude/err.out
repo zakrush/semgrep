@@ -4,4 +4,8 @@ including files:
 excluding files:
 - excluded.*
 Running 4 rules...
+
+  0%|          | 0/1 [00:00<?, ?it/s]
+100%|██████████| 1/1 [00:00<00:00,  6.24it/s]
+100%|██████████| 1/1 [00:00<00:00,  6.11it/s]
 ran 4 rules on 1 files: 1 findings

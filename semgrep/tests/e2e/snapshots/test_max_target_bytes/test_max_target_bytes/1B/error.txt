@@ -1,2 +1,5 @@
 Running 4 rules...
+
+0it [00:00, ?it/s]
+1it [00:00, 20.14it/s]
 ran 4 rules on 0 files: 0 findings
