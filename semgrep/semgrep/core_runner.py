@@ -110,7 +110,6 @@ class StreamingSemgrepCore:
 
     This behavior is assumed to be that semgrep-core:
     - prints a "." on a newline for every file it finishes scanning
-    - prints "done"
     - prints a single json blob of all results
 
     Exposes the subprocess.CompletedProcess properties for
@@ -159,12 +158,10 @@ class StreamingSemgrepCore:
             if not line_bytes:
                 break
 
-            if self._progress_bar:
-                self._progress_bar.update(1)
-
             line = line_bytes.decode("utf-8")
             if line.strip() == ".":
-                pass
+                if self._progress_bar:
+                    self._progress_bar.update()
             else:
                 self._stdout += line
 
@@ -506,7 +503,7 @@ class CoreRunner:
                     print(" ".join(cmd))
                     sys.exit(0)
 
-                runner = StreamingSemgrepCore(cmd, len(all_targets))
+                runner = StreamingSemgrepCore(cmd, len(targets_with_rules))
                 returncode = runner.execute()
 
                 # Process output
