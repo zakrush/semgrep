@@ -7,6 +7,22 @@
       "path": "targets/equivalence/open_redirect.py",
       "rule_id": "rules.forcetimeout",
       "type": "Timeout"
+    },
+    {
+      "code": 2,
+      "level": "warn",
+      "message": "[WARN] Semgrep Core \u2014 Timeout\nAn error occurred while invoking the Semgrep engine. Please help us fix this by creating an issue at https://github.com/returntocorp/semgrep\n\nWhen running rules.forcetimeout2 on targets/equivalence/open_redirect.py: \n",
+      "path": "targets/equivalence/open_redirect.py",
+      "rule_id": "rules.forcetimeout2",
+      "type": "Timeout"
+    },
+    {
+      "code": 2,
+      "level": "warn",
+      "message": "[WARN] Semgrep Core \u2014 Timeout\nAn error occurred while invoking the Semgrep engine. Please help us fix this by creating an issue at https://github.com/returntocorp/semgrep\n\nWhen running rules.forcetimeout3 on targets/equivalence/open_redirect.py: \n",
+      "path": "targets/equivalence/open_redirect.py",
+      "rule_id": "rules.forcetimeout3",
+      "type": "Timeout"
     }
   ],
   "results": [],
