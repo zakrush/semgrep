@@ -17,9 +17,9 @@ Files skipped:
 
   Skipped by --include patterns:
 
+   • targets/ignores/ok/find.js
    • targets/ignores/find.js
    • targets/ignores/ignore_test.js
-   • targets/ignores/ok/find.js
 
   Skipped by --exclude patterns:
 
