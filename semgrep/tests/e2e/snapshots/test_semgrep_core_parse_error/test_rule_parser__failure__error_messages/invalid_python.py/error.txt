@@ -1,50 +1,26 @@
-running 2 rules from 1 config rules/eqeq-python.yaml_0
-Running 2 rules...
-rules:
-- rules.assert-eqeq-is-ok
-- rules.eqeq-is-bad
-No .semgrepignore found. Using default .semgrepignore rules. See the docs for the list of default ignores: https://semgrep.dev/docs/cli-usage/#ignoring-files
-[WARN] Semgrep Core — Syntax error
-An error occurred while invoking the Semgrep engine. Please help us fix this by creating an issue at https://github.com/returntocorp/semgrep
-
-At line targets/bad/invalid_python.py:1: `
-    ` was unexpected
-
-
-========================================
-Files skipped:
-========================================
-
-  Always skipped by Semgrep:
-
-   • <none>
-
-  Skipped by .gitignore:
-  (Disable by passing --no-git-ignore)
-
-   • <all files not listed by `git ls-files` were skipped>
-
-  Skipped by .semgrepignore:
-  (See: https://semgrep.dev/docs/ignoring-files-folders-code/#understanding-semgrep-defaults)
-
-   • <none>
-
-  Skipped by --include patterns:
-
-   • <none>
-
-  Skipped by --exclude patterns:
-
-   • <none>
-
-  Skipped by limiting to files smaller than 1000000 bytes:
-  (Adjust with the --max-target-bytes flag)
-
-   • <none>
-
-
-skipped: all .gitignored files
-for a detailed list of skipped files, run semgrep with the --verbose flag
-
-ran 2 rules on 1 files: 0 findings
-Not sending pseudonymous metrics since metrics are configured to AUTO and server usage is False
+Traceback (most recent call last):
+  File "/usr/lib/python3.8/runpy.py", line 194, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.8/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/__main__.py", line 5, in <module>
+    from semgrep.cli import cli
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/cli.py", line 6, in <module>
+    from semgrep.commands.scan import scan
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/commands/scan.py", line 18, in <module>
+    from semgrep.config_resolver import list_current_public_rulesets
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/config_resolver.py", line 32, in <module>
+    from semgrep.error import InvalidRuleSchemaError
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/error.py", line 16, in <module>
+    from semgrep.rule_lang import Position
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/rule_lang.py", line 21, in <module>
+    import jsonschema.exceptions
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/jsonschema/__init__.py", line 12, in <module>
+    from jsonschema._format import (
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/jsonschema/_format.py", line 10, in <module>
+    from jsonschema.exceptions import FormatError
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/jsonschema/exceptions.py", line 13, in <module>
+    from jsonschema import _utils
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/jsonschema/_utils.py", line 12, in <module>
+    import importlib_resources as resources  # type: ignore
+ModuleNotFoundError: No module named 'importlib_resources'

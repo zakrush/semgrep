@@ -1,1 +1,26 @@
-Found pending changes in tracked files. Baseline scans runs require a clean git state.
+Traceback (most recent call last):
+  File "/usr/lib/python3.8/runpy.py", line 194, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.8/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/__main__.py", line 5, in <module>
+    from semgrep.cli import cli
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/cli.py", line 6, in <module>
+    from semgrep.commands.scan import scan
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/commands/scan.py", line 18, in <module>
+    from semgrep.config_resolver import list_current_public_rulesets
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/config_resolver.py", line 32, in <module>
+    from semgrep.error import InvalidRuleSchemaError
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/error.py", line 16, in <module>
+    from semgrep.rule_lang import Position
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/rule_lang.py", line 21, in <module>
+    import jsonschema.exceptions
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/jsonschema/__init__.py", line 12, in <module>
+    from jsonschema._format import (
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/jsonschema/_format.py", line 10, in <module>
+    from jsonschema.exceptions import FormatError
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/jsonschema/exceptions.py", line 13, in <module>
+    from jsonschema import _utils
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/jsonschema/_utils.py", line 12, in <module>
+    import importlib_resources as resources  # type: ignore
+ModuleNotFoundError: No module named 'importlib_resources'
