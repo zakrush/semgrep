@@ -106,17 +106,26 @@ if not SEMGREP_SKIP_BIN:
         os.chmod(dst, os.stat(dst).st_mode | stat.S_IEXEC)
 
 install_requires = [
-    "attrs>=19.3.0",
-    "colorama>=0.4.3",
-    "click>=8.0.1",
-    "click-option-group>=0.5.3",
-    "requests>=2.22.0",
+    # versions must be manually synced:
+    # - semgrep/setup.py lists dependencies
+    # - semgrep/Pipfile lists type hint packages for dev env
+    # - .pre-commit-config.yaml's mypy hooks also list type hint packages
+    #
+    # These version are flexible so semgrep can coexist with other tools.
+    # Flexibility is achieved by, in order of preference:
+    # 1. x.0~= operator pinning to x major version
+    # 2. >=x,<y operator pinning to multiple major versions
+    "attrs~=21.0",
+    "colorama~=0.4.0",
+    "click~=8.0",
+    "click-option-group~=0.5",
+    "requests~=2.22",
     "ruamel.yaml>=0.16.0,<0.18",
-    "tqdm>=4.46.1",
-    "packaging>=20.4",
+    "tqdm~=4.46",
+    "packaging~=21.0",
     "jsonschema>=3.2.0,<5",
-    "wcmatch==8.3",
-    "peewee~=3.14.4",
+    "wcmatch~=8.3",
+    "peewee~=3.14",
     # Include 'setuptools' for 'pkg_resources' usage. We shouldn't be
     # overly prescriptive and pin the version for two reasons: 1) because
     # it may interfere with other 'setuptools' installs on the system,
@@ -124,6 +133,14 @@ install_requires = [
     # in 'setuptools' for a very long time, so we don't need a recent
     # version.
     "setuptools",
+    # importlib.resources is an standard library package
+    # that has a backport on PyPI called .importlib-resources.
+    # jsonschema==4 uses a feature from it that was added in py3.9.
+    # Normally jsonschema==4 would install the backport on py3.8 and below,
+    # but because we pin jsonschema, just in development, to an old version,
+    # we never get the backport when running pipenv lock on a dev machine.
+    # So we add it manually here:
+    'importlib-resources;python_version<"3.9"',
 ]
 
 setuptools.setup(
