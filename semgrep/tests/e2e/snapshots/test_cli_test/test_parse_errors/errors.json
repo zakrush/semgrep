@@ -9,6 +9,11 @@ An error occurred while invoking the Semgrep engine. Please help us fix this by 
 
 At line targets/cli_test/parse_errors/invalid_javascript.js:5: `key:` was unexpected
 
+[WARN] Semgrep Core — Syntax error
+An error occurred while invoking the Semgrep engine. Please help us fix this by creating an issue at https://github.com/returntocorp/semgrep
+
+At line targets/cli_test/parse_errors/invalid_javascript.js:5: `key:` was unexpected
+
 
 ========================================
 Files skipped:
