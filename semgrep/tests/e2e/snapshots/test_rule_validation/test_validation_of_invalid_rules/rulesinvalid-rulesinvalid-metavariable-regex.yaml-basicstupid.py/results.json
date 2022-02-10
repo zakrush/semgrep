@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "code": 4,
+      "code": 2,
       "level": "error",
       "long_msg": "Detected duplicate key name, one of ['metavariable', 'regex'].",
       "short_msg": "Detected duplicate key",

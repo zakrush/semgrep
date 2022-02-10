@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "code": 4,
+      "code": 2,
       "level": "error",
       "long_msg": "In semgrep YAML configuration, null values are prohibited",
       "short_msg": "null values prohibited",

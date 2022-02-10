@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "code": 4,
+      "code": 2,
       "level": "error",
       "long_msg": "rules/syntax/missing-toplevel.yaml_0 is missing `rules` as top-level key",
       "short_msg": "missing keys",
