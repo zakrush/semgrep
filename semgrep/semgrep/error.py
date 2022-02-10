@@ -8,8 +8,11 @@ from typing import List
 from typing import Optional
 from typing import Sequence
 from typing import Tuple
+from typing import Union
 
-import attr
+from attrs import asdict
+from attrs import field
+from attrs import frozen
 
 from semgrep.constants import Colors
 from semgrep.constants import PLEASE_FILE_ISSUE_TEXT
@@ -40,6 +43,12 @@ class Level(Enum):
     WARN = 3  # Only an error if "strict" is set
 
 
+# attrs would normally not add __eq__ to exceptions,
+# because logically two exceptions are never the same
+# (they are raised by different code paths)
+# but we do rely on deduplicating errors when printing,
+# hence the auto_exc=False
+@frozen(auto_exc=False)
 class SemgrepError(Exception):
     """
     Parent class of all exceptions we anticipate in Semgrep commands
@@ -50,13 +59,9 @@ class SemgrepError(Exception):
     For pretty-printing, exceptions should override `__str__`.
     """
 
-    def __init__(
-        self, *args: object, code: int = FATAL_EXIT_CODE, level: Level = Level.ERROR
-    ) -> None:
-        self.code = code
-        self.level = level
-
-        super().__init__(*args)
+    message: Optional[Union[str, Exception]] = None
+    code: int = FATAL_EXIT_CODE
+    level: Level = Level.ERROR
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -85,14 +90,14 @@ class SemgrepError(Exception):
         return cls(**data)
 
 
-@attr.s(auto_attribs=True, frozen=True)
+@frozen
 class LegacySpan:
     config_start: CoreLocation
     config_end: CoreLocation
     config_path: Tuple[str]
 
 
-@attr.s(auto_attribs=True, frozen=True)
+@frozen
 class SemgrepCoreError(SemgrepError):
     code: int
     level: Level
@@ -118,7 +123,7 @@ class SemgrepCoreError(SemgrepError):
             base["path"] = str(self.path)
 
         if self.spans:
-            base["spans"] = tuple([attr.asdict(s) for s in self.spans])
+            base["spans"] = tuple([asdict(s) for s in self.spans])
 
         return base
 
@@ -174,6 +179,7 @@ class SemgrepCoreError(SemgrepError):
         return f"{level_tag} " + self._error_message + self._stack_trace
 
 
+@frozen
 class SemgrepInternalError(Exception):
     """
     Parent class of internal semgrep exceptions that should be handled internally and converted into `SemgrepError`s
@@ -184,11 +190,11 @@ class SemgrepInternalError(Exception):
     pass
 
 
-@attr.s(auto_attribs=True, frozen=True)
+@frozen
 class FilesNotFoundError(SemgrepError):
     level = Level.ERROR
     code = FATAL_EXIT_CODE
-    paths: Sequence[Path]
+    paths: Sequence[Path] = field(factory=list)
 
     def __str__(self) -> str:
         lines = (f"File not found: {pathname}" for pathname in self.paths)
@@ -203,7 +209,7 @@ def span_list_to_tuple(spans: List[Span]) -> Tuple[Span, ...]:
     return tuple(spans)
 
 
-@attr.s(auto_attribs=True, eq=True, frozen=True)
+@frozen
 class ErrorWithSpan(SemgrepError):
     """
     In general, you should not be constructing ErrorWithSpan directly, and instead be constructing a subclass
@@ -234,10 +240,10 @@ class ErrorWithSpan(SemgrepError):
     :cause cause: The underlying exception
     """
 
-    short_msg: str = attr.ib()
-    long_msg: Optional[str] = attr.ib()
-    spans: List[Span] = attr.ib(converter=span_list_to_tuple)
-    help: Optional[str] = attr.ib(default=None)
+    short_msg: str = "unknown error"
+    long_msg: Optional[str] = None
+    help: Optional[str] = None
+    spans: List[Span] = field(converter=span_list_to_tuple, factory=list)
 
     def __attrs_post_init__(self) -> None:
         if not hasattr(self, "code"):
@@ -251,7 +257,7 @@ class ErrorWithSpan(SemgrepError):
             short_msg=self.short_msg,
             long_msg=self.long_msg,
             level=self.level.name.lower(),
-            spans=[attr.asdict(s) for s in self.spans],
+            spans=[asdict(s) for s in self.spans],
         )
         # otherwise, we end up with `help: null` in JSON
         if self.help:
@@ -357,13 +363,13 @@ class ErrorWithSpan(SemgrepError):
         return f"{header}\n{snippet_str_with_newline}{help_str}\n{with_color(Colors.red, self.long_msg or '')}\n"
 
 
-@attr.s(frozen=True, eq=True)
+@frozen
 class InvalidRuleSchemaError(ErrorWithSpan):
     code = INVALID_PATTERN_EXIT_CODE
     level = Level.ERROR
 
 
-@attr.s(frozen=True, eq=True)
+@frozen
 class UnknownLanguageError(ErrorWithSpan):
     code = INVALID_LANGUAGE_EXIT_CODE
     level = Level.ERROR
