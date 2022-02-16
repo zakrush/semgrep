@@ -1,4 +1,16 @@
-type mapping = Pattern_match.Set.t Dataflow_core.mapping
+type taint = Src of Pattern_match.t | Arg of int
+
+module Tainted : Set.S with type elt = taint
+
+type sink =
+  | PM of Pattern_match.t
+  | Call of AST_generic.expr * sink 
+
+type result =
+  | Sink of Tainted.elt * sink
+  | Return of Tainted.elt
+
+type mapping = Tainted.t Dataflow_core.mapping
 (** Map for each node/var whether a variable is "tainted" *)
 
 type fun_env = (Dataflow_core.var, Pattern_match.Set.t) Hashtbl.t
@@ -12,7 +24,7 @@ type config = {
   is_sink : AST_generic.any -> Pattern_match.t list;
   is_sanitizer : AST_generic.any -> Pattern_match.t list;
   found_tainted_sink :
-    Pattern_match.Set.t -> Pattern_match.Set.t Dataflow_core.env -> unit;
+    result list -> Tainted.t Dataflow_core.env -> unit;
 }
 (** This can use semgrep patterns under the hood. Note that a source can be an
   * instruction but also an expression. *)

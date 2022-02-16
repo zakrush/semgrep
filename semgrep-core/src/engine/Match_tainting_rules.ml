@@ -210,7 +210,7 @@ let check_bis ~match_hook (default_config, equivs)
   let taint_configs =
     taint_rules
     |> List.map (fun (rule, taint_spec) ->
-           let found_tainted_sink pms _env =
+           let found_tainted_sink results (* pms *) _env =
              PM.Set.iter (fun pm -> Common.push pm matches) pms
            in
            taint_config_of_rule default_config equivs file (ast, []) rule
