@@ -20,3 +20,22 @@ val check_bis :
   Lang.t ->
   Target.t ->
   Pattern_match.t list
+
+
+(* Deep Semgrep *)
+
+val check_def : Common.filename ->
+  Lang.t ->
+  Rule.rule list ->
+  (Common.filename * string, Dataflow_tainting.config) Hashtbl.t ->
+  (string, Dataflow_tainting.fun_env) Hashtbl.t ->
+  string -> AST_generic.function_definition -> unit
+
+val taint_config_of_rule : Config_semgrep_t.t ->
+  Equivalence.equivalences ->
+  Common.filename ->
+  AST_generic.program * Semgrep_error_code.error list ->
+  Rule.rule ->
+  Rule.taint_spec ->
+  (Pattern_match.Set.t -> Pattern_match.Set.t Dataflow_core.env -> unit) -> Dataflow_tainting.config
+

@@ -57,7 +57,7 @@ and phase =
   | Uses
 
 and hooks = {
-  on_def_node : Graph_code.node -> AST_generic.definition -> unit;
+  on_def_node : env -> Graph_code.node -> AST_generic.definition -> unit;
   on_extend_edge :
     Graph_code.node ->
     Graph_code.node ->

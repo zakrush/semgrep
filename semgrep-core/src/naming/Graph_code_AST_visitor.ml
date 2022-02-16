@@ -1031,7 +1031,7 @@ and map_definition env def =
             env.g |> G.add_node node;
             env.g |> G.add_nodeinfo node (H.nodeinfo id);
             env.g |> G.add_edge (env.current_parent, node) G.Has);
-          env.hooks.on_def_node node def);
+          env.hooks.on_def_node env node def);
 
         (match v2 with
         (* TODO: handle multiple inheritance? *)

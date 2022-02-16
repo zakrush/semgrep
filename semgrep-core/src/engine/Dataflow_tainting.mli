@@ -6,6 +6,8 @@ type fun_env = (Dataflow_core.var, Pattern_match.Set.t) Hashtbl.t
   * Note that here [Dataflow.var] is a string of the form "<source name>:<sid>". *)
 
 type config = {
+  filepath : Common.filename;
+  rule_id : string;
   is_source : AST_generic.any -> Pattern_match.t list;
   is_sink : AST_generic.any -> Pattern_match.t list;
   is_sanitizer : AST_generic.any -> Pattern_match.t list;
@@ -15,7 +17,10 @@ type config = {
 (** This can use semgrep patterns under the hood. Note that a source can be an
   * instruction but also an expression. *)
 
-val fixpoint : config -> fun_env -> IL.name option -> IL.cfg -> mapping
+
+val hook_tainted_function : (config -> AST_generic.expr -> Pattern_match.Set.t) option ref
+
+val fixpoint : config -> fun_env -> Dataflow_core.var option -> IL.cfg -> mapping
 (** Main entry point, [fixpoint config fun_env opt_name cfg] returns a mapping
   * (effectively a set) containing all the tainted variables in [cfg]. Besides,
   * if it finds an instruction that consumes tainted data, then it will invoke

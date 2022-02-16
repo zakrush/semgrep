@@ -159,8 +159,18 @@ let taint_config_of_rule default_config equivs file ast_and_errors
              else None
            else Some rng)
   in
+  sources_ranges |> List.iter (fun rwm ->
+    let r = rwm.Range_with_metavars.r in
+    logger#flash "[taint] source: %d-%d\n" r.Range.start r.Range.end_;
+  );
+  sinks_ranges |> List.iter (fun rwm ->
+    let r = rwm.Range_with_metavars.r in
+    logger#flash "[taint] sink: %d-%d\n" r.Range.start r.Range.end_;
+  );
   {
-    Dataflow_tainting.is_source = (fun x -> any_in_ranges x sources_ranges);
+    Dataflow_tainting.filepath = file;
+    rule_id = fst rule.R.id;
+    is_source = (fun x -> any_in_ranges x sources_ranges);
     is_sanitizer = (fun x -> any_in_ranges x sanitizers_ranges);
     is_sink = (fun x -> any_in_ranges x sinks_ranges);
     found_tainted_sink;
@@ -171,6 +181,27 @@ let lazy_force x = Lazy.force x [@@profiling]
 (*****************************************************************************)
 (* Main entry point *)
 (*****************************************************************************)
+
+let check_def
+    file lang taint_rules taint_configs taint_envs ent_name fdef =
+
+  let check_stmt name def_body =
+    let xs = AST_to_IL.stmt lang def_body in
+    let flow = CFG_build.cfg_of_stmts xs in
+
+    taint_rules
+    |> List.iter (fun taint_rule ->
+          let taint_config = Hashtbl.find taint_configs (file, fst taint_rule.Rule.id) in
+          let fun_env = Hashtbl.find taint_envs (fst taint_rule.Rule.id) in
+           let mapping =
+             Dataflow_tainting.fixpoint taint_config fun_env (Some name) flow
+           in
+           ignore mapping
+           )
+  in
+  check_stmt ent_name (H.funcbody_to_stmt fdef.G.fbody)
+
+  
 
 let check_bis ~match_hook (default_config, equivs)
     (taint_rules : (Rule.rule * Rule.taint_spec) list) file lang ast =
@@ -212,7 +243,8 @@ let check_bis ~match_hook (default_config, equivs)
           (fun (k, _v) ((ent, def_kind) as def) ->
             match def_kind with
             | G.FuncDef fdef ->
-                let opt_name = AST_to_IL.name_of_entity ent in
+                let opt_name = AST_to_IL.name_of_entity ent                 
+                |> Option.map (fun name -> Common.spf "%s:%d" (fst name.IL.ident) name.IL.sid) in
                 check_stmt opt_name (H.funcbody_to_stmt fdef.G.fbody);
                 (* go into nested functions *)
                 k def

@@ -20,6 +20,8 @@ module D = Dataflow_core
 module VarMap = Dataflow_core.VarMap
 module PM = Pattern_match
 
+let logger = Logging.get_logger [ __MODULE__ ]
+
 (*****************************************************************************)
 (* Prelude *)
 (*****************************************************************************)
@@ -48,6 +50,9 @@ type fun_env = (Dataflow_core.var, PM.Set.t) Hashtbl.t
 
 (* is_source/sink/sanitizer returns a list of ways that some piece of code can be matched as a source/sink/sanitizer *)
 type config = {
+  (* Add filepath and rule_id to then use DeepSemgrep hooks.  *)
+  filepath : Common.filename;
+  rule_id : string;
   is_source : G.any -> PM.t list;
   is_sink : G.any -> PM.t list;
   is_sanitizer : G.any -> PM.t list;
@@ -65,6 +70,18 @@ module DataflowX = Dataflow_core.Make (struct
 
   let short_string_of_node n = Display_IL.short_string_of_node_kind n.F.n
 end)
+
+(*****************************************************************************)
+(* Hooks *)
+(*****************************************************************************)
+
+let hook_tainted_function = ref None
+
+let is_tainted_function_hook config e =
+  logger#flash "[taint] is_tainted_function_hook (file=%s, rule=%s): %s\n" config.filepath config.rule_id (G.show_expr e);
+  match !hook_tainted_function with
+  | None -> PM.Set.empty
+  | Some hook -> hook config e
 
 (*****************************************************************************)
 (* Helpers *)
@@ -152,6 +169,7 @@ let check_tainted_var config (fun_env : fun_env) (env : PM.Set.t VarMap.t) var =
     |> PM.Set.union (set_opt_to_set (VarMap.find_opt (str_of_name var) env))
     |> PM.Set.union
          (set_opt_to_set (Hashtbl.find_opt fun_env (str_of_name var)))
+    (* |> PM.Set.union (is_tainted_function_hook config ((G.Id (var.ident, var.id_info)))) *)
   in
   match sanitize_pms with
   | _ :: _ -> PM.Set.empty
@@ -177,9 +195,18 @@ let rec check_tainted_expr config (fun_env : fun_env) (env : PM.Set.t VarMap.t)
     | Dot _ ->
         PM.Set.empty
   in
-  let check_subexpr = function
+  let check_subexpr exp =
+    match exp.e with
     | Fetch { base = VarSpecial (This, _); offset = Dot fld; _ } ->
         set_opt_to_set (Hashtbl.find_opt fun_env (str_of_name fld))
+    | Fetch { base = Var {id_info = {G.id_resolved = {contents = (Some (G.ImportedEntity _, _))}; _} ; _}; offset = Dot _; _ } ->
+        (match exp.eorig with
+        | SameAs eorig ->
+
+        (is_tainted_function_hook config eorig)
+        | _ -> PM.Set.empty
+
+        )
     | Fetch { base; offset; _ } ->
         PM.Set.union (check_base base) (check_offset offset)
     | FixmeExp (_, _, Some e) -> check e
@@ -197,7 +224,7 @@ let rec check_tainted_expr config (fun_env : fun_env) (env : PM.Set.t VarMap.t)
   | _ :: _ -> PM.Set.empty
   | [] ->
       let tainted_pms =
-        PM.Set.union (check_subexpr exp.e)
+        PM.Set.union (check_subexpr exp)
           (PM.Set.of_list (orig_is_source config exp.eorig))
       in
       let found = make_tainted_sink_matches sink_pms tainted_pms in
@@ -249,7 +276,7 @@ let union = Dataflow_core.varmap_union PM.Set.union
 let (transfer :
       config ->
       fun_env ->
-      IL.name option ->
+      string option ->
       flow:F.cfg ->
       PM.Set.t Dataflow_core.transfn) =
  fun config fun_env opt_name ~flow
@@ -279,9 +306,9 @@ let (transfer :
         let tainted = check_tainted_return config fun_env in' tok e in
         match opt_name with
         | Some var ->
-            (let str = str_of_name var in
+            (let str = var in
              match Hashtbl.find_opt fun_env str with
-             | None -> Hashtbl.add fun_env str tainted
+             | None -> if not (PM.Set.is_empty tainted) then Hashtbl.add fun_env str tainted
              | Some tained' ->
                  Hashtbl.replace fun_env str (PM.Set.union tainted tained'));
             in'
@@ -294,7 +321,7 @@ let (transfer :
 (* Entry point *)
 (*****************************************************************************)
 
-let (fixpoint : config -> fun_env -> IL.name option -> F.cfg -> mapping) =
+let (fixpoint : config -> fun_env -> Dataflow_core.var option -> F.cfg -> mapping) =
  fun config fun_env opt_name flow ->
   DataflowX.fixpoint ~eq:PM.Set.equal
     ~init:(DataflowX.new_node_array flow (Dataflow_core.empty_inout ()))
