@@ -185,6 +185,24 @@ let lazy_force x = Lazy.force x [@@profiling]
 let check_def
     file lang taint_rules taint_configs taint_envs ent_name fdef =
 
+  let str_of_name name = Common.spf "%s:%d" (fst name.IL.ident) name.IL.sid in
+
+  let in_env =
+    List.fold_left (fun (i, env) par ->
+      match par with
+      | G.Param { pname = Some id; pinfo; _ } ->
+        let var = str_of_name (AST_to_IL.var_of_id_info id pinfo) in
+        let env = Dataflow_core.VarMap.add var (Dataflow_tainting.Arg i |> Dataflow_tainting.Tainted.singleton) env in
+        logger#flash "[taint] check_def: in_env: %s -> Arg %d" var i;
+        (i+1, env)
+      | _ -> (i+1, env)
+    )
+    (0, Dataflow_core.VarMap.empty) fdef.G.fparams
+    |> snd
+   in
+
+  logger#flash "[taint] check_def: in_env# = %d" (Dataflow_core.VarMap.cardinal in_env);
+
   let check_stmt name def_body =
     let xs = AST_to_IL.stmt lang def_body in
     let flow = CFG_build.cfg_of_stmts xs in
@@ -194,7 +212,7 @@ let check_def
           let taint_config = Hashtbl.find taint_configs (file, fst taint_rule.Rule.id) in
           let fun_env = Hashtbl.find taint_envs (fst taint_rule.Rule.id) in
            let mapping =
-             Dataflow_tainting.fixpoint taint_config fun_env (Some name) flow
+             Dataflow_tainting.fixpoint taint_config fun_env (Some name) ~in_env flow
            in
            ignore mapping
            )

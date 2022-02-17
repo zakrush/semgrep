@@ -35,7 +35,7 @@ val unify_meta_envs : ('a * Metavariable.mvalue) list -> ('a * Metavariable.mval
 
 val hook_tainted_function : (config -> AST_generic.expr -> Pattern_match.Set.t) option ref
 
-val fixpoint : config -> fun_env -> Dataflow_core.var option -> IL.cfg -> mapping
+val fixpoint : config -> fun_env -> Dataflow_core.var option -> ?in_env:(Tainted.t Dataflow_core.VarMap.t) -> IL.cfg -> mapping
 (** Main entry point, [fixpoint config fun_env opt_name cfg] returns a mapping
   * (effectively a set) containing all the tainted variables in [cfg]. Besides,
   * if it finds an instruction that consumes tainted data, then it will invoke

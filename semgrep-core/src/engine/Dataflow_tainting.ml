@@ -75,6 +75,16 @@ module Tainted = Set.Make (struct
     | Src _, Arg _ -> +1
 end)
 
+let show_tainted tainted =
+  tainted |> Tainted.elements
+  |> List.map (function Src _ -> "PM" | Arg i -> "Arg " ^ string_of_int i)
+  |> String.concat ", "
+  |> fun str -> "{ " ^ str ^ " }"
+
+let (env_to_str : ('a -> string) -> 'a VarMap.t -> string) =
+ fun val2str env ->
+  VarMap.fold (fun dn v s -> s ^ dn ^ ":" ^ val2str v ^ " ") env ""
+
 type sink =
   | PM of Pattern_match.t
   | Call of G.expr * sink 
@@ -213,6 +223,7 @@ let make_tainted_sink_matches (sinks : sink list) (tainted : Tainted.t) : result
 (*****************************************************************************)
 
 let check_tainted_var config (fun_env : fun_env) (env : Tainted.t VarMap.t) var : Tainted.t =
+  logger#flash "[taint] check_tainted_var %s" (str_of_name var) ;
   let source_pms, sanitize_pms, sink_pms =
     let _, tok = var.ident in
     if Parse_info.is_origintok tok then
@@ -337,23 +348,36 @@ let check_tainted_return config fun_env env tok e =
 (* Transfer *)
 (*****************************************************************************)
 
-let union = Dataflow_core.varmap_union Tainted.union
+let union_env = Dataflow_core.varmap_union Tainted.union
+
+let input_env ~enter_env ~(flow : F.cfg) mapping ni =
+  let node = flow.graph#nodes#assoc ni in
+  match node.F.n with
+  | Enter -> enter_env
+  | _else -> (
+      let pred_envs =
+        CFG.predecessors flow ni
+        |> Common.map (fun (pi, _) -> mapping.(pi).D.out_env)
+      in
+      match pred_envs with
+      | [] -> VarMap.empty
+      | [ penv ] -> penv
+      | penv1 :: penvs -> List.fold_left union_env penv1 penvs)
 
 let (transfer :
       config ->
       fun_env ->
+      Tainted.t Dataflow_core.env ->
       string option ->
       flow:F.cfg ->
       Tainted.t Dataflow_core.transfn) =
- fun config fun_env opt_name ~flow
+ fun config fun_env enter_env opt_name ~flow
      (* the transfer function to update the mapping at node index ni *)
        mapping ni ->
-  let in' :Tainted.t VarMap.t =
-    CFG.predecessors flow ni
-    |> List.fold_left
-         (fun acc (ni_pred, _) -> union acc mapping.(ni_pred).D.out_env)
-         VarMap.empty
-  in
+  DataflowX.display_mapping flow mapping show_tainted;
+  
+  let in' :Tainted.t VarMap.t = input_env ~enter_env ~flow mapping ni in
+  logger#flash "transfer ni=%d in'=%s" ni (env_to_str show_tainted in');
   let node = flow.graph#nodes#assoc ni in
   let out' :Tainted.t VarMap.t =
     match node.F.n with
@@ -392,11 +416,21 @@ let (transfer :
 (* Entry point *)
 (*****************************************************************************)
 
-let (fixpoint : config -> fun_env -> Dataflow_core.var option -> F.cfg -> mapping) =
- fun config fun_env opt_name flow ->
+let (fixpoint : config -> fun_env -> Dataflow_core.var option -> ?in_env:(Tainted.t Dataflow_core.VarMap.t) -> F.cfg -> mapping) =
+ fun config fun_env opt_name ?in_env flow ->
+  let init_mapping =
+    (DataflowX.new_node_array flow (Dataflow_core.empty_inout ()))
+  in
+  let enter_env =
+    match in_env with
+    | None -> VarMap.empty
+    | Some in_env -> in_env
+   in
+   (* THINK: Why I cannot just update mapping here ? if I do, the mapping gets overwritten later on! *)
+  (* DataflowX.display_mapping flow init_mapping show_tainted; *)
   DataflowX.fixpoint ~eq:Tainted.equal
-    ~init:(DataflowX.new_node_array flow (Dataflow_core.empty_inout ()))
+    ~init:init_mapping
     ~trans:
-      (transfer config fun_env opt_name ~flow)
+      (transfer config fun_env enter_env opt_name ~flow)
       (* tainting is a forward analysis! *)
     ~forward:true ~flow
