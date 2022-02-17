@@ -322,6 +322,28 @@ let check_tainted_instr config opt_name fun_env env instr : Tainted.t =
   let tainted_args = function
     | Assign (_, e) -> check_expr e
     | AssignAnon _ -> Tainted.empty (* TODO *)
+    | Call (_, {e = Fetch { base = Var {id_info = {G.id_resolved = {contents = (Some (G.ImportedEntity _, _))}; _}; _}; offset = Dot _; _ }; eorig = SameAs eorig; _}, args) ->
+      logger#flash "check_tainted_instr Call";
+      (match !hook_tainted_function with
+      | None -> Tainted.empty
+      | Some hook ->
+        let e_sig = hook config eorig in
+        e_sig |> List.filter_map (function
+        | Return (Src pm) -> Some (Tainted.singleton (Src pm))
+        | Return (Arg i) -> 
+          let arg_i = List.nth args i in
+          Some (check_expr arg_i)
+        | Sink (Arg i, sink) ->
+          let arg_i = List.nth args i in
+          let arg_tainted = check_expr arg_i in
+          arg_tainted
+          |> Tainted.iter (fun t -> config.found_tainted_sink opt_name [Sink (t, sink)] env
+          );
+          None
+        | _ -> None
+        )
+        |> List.fold_left Tainted.union Tainted.empty
+        )
     | Call (_, e, args) ->
         let e_tainted_pms = check_expr e in
         let args_tainted_pms = set_concat_map check_expr args in
