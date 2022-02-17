@@ -183,7 +183,7 @@ let lazy_force x = Lazy.force x [@@profiling]
 (*****************************************************************************)
 
 let check_def
-    file lang taint_rules taint_configs taint_envs ent_name fdef =
+    file lang taint_rules taint_configs ent_name fdef =
 
   let str_of_name name = Common.spf "%s:%d" (fst name.IL.ident) name.IL.sid in
 
@@ -210,7 +210,7 @@ let check_def
     taint_rules
     |> List.iter (fun taint_rule ->
           let taint_config = Hashtbl.find taint_configs (file, fst taint_rule.Rule.id) in
-          let fun_env = Hashtbl.find taint_envs (fst taint_rule.Rule.id) in
+          let fun_env = Hashtbl.create 8 in
            let mapping =
              Dataflow_tainting.fixpoint taint_config fun_env (Some name) ~in_env flow
            in
@@ -228,7 +228,7 @@ let check_bis ~match_hook (default_config, equivs)
   let taint_configs =
     taint_rules
     |> List.map (fun (rule, taint_spec) ->
-           let found_tainted_sink results (* pms *) _env =
+           let found_tainted_sink _ results (* pms *) _env =
               (* TODO: unify_meta_envs here? *)
              results |> List.iter (function | Dataflow_tainting.Sink (_taint, sink) -> Common.push (Dataflow_tainting.pm_of_sink sink) matches | Dataflow_tainting.Return _ -> () )
            in

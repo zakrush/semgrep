@@ -31,7 +31,7 @@ let test_dfg_tainting file =
                  is_source = (fun _ -> []);
                  is_sink = (fun _ -> []);
                  is_sanitizer = (fun _ -> []);
-                 found_tainted_sink = (fun _ _ -> ());
+                 found_tainted_sink = (fun _ _ _ -> ());
                }
              in
              let opt_name = AST_to_IL.name_of_entity ent

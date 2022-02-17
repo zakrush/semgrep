@@ -24,7 +24,7 @@ type config = {
   is_sink : AST_generic.any -> Pattern_match.t list;
   is_sanitizer : AST_generic.any -> Pattern_match.t list;
   found_tainted_sink :
-    result list -> Tainted.t Dataflow_core.env -> unit;
+    Dataflow_core.var option -> result list -> Tainted.t Dataflow_core.env -> unit;
 }
 (** This can use semgrep patterns under the hood. Note that a source can be an
   * instruction but also an expression. *)
@@ -33,7 +33,7 @@ val pm_of_sink : sink -> Pattern_match.t
 
 val unify_meta_envs : ('a * Metavariable.mvalue) list -> ('a * Metavariable.mvalue) list -> ('a * Metavariable.mvalue) list option
 
-val hook_tainted_function : (config -> AST_generic.expr -> Pattern_match.Set.t) option ref
+val hook_tainted_function : (config -> AST_generic.expr -> result list) option ref
 
 val fixpoint : config -> fun_env -> Dataflow_core.var option -> ?in_env:(Tainted.t Dataflow_core.VarMap.t) -> IL.cfg -> mapping
 (** Main entry point, [fixpoint config fun_env opt_name cfg] returns a mapping
