@@ -37,5 +37,5 @@ val taint_config_of_rule : Config_semgrep_t.t ->
   AST_generic.program * Semgrep_error_code.error list ->
   Rule.rule ->
   Rule.taint_spec ->
-  (Pattern_match.Set.t -> Pattern_match.Set.t Dataflow_core.env -> unit) -> Dataflow_tainting.config
+  (Dataflow_tainting.result list -> Dataflow_tainting.Tainted.t Dataflow_core.env -> unit) -> Dataflow_tainting.config
 

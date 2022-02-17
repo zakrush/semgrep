@@ -29,6 +29,9 @@ type config = {
 (** This can use semgrep patterns under the hood. Note that a source can be an
   * instruction but also an expression. *)
 
+val pm_of_sink : sink -> Pattern_match.t
+
+val unify_meta_envs : ('a * Metavariable.mvalue) list -> ('a * Metavariable.mvalue) list -> ('a * Metavariable.mvalue) list option
 
 val hook_tainted_function : (config -> AST_generic.expr -> Pattern_match.Set.t) option ref
 

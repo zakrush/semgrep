@@ -211,7 +211,8 @@ let check_bis ~match_hook (default_config, equivs)
     taint_rules
     |> List.map (fun (rule, taint_spec) ->
            let found_tainted_sink results (* pms *) _env =
-             PM.Set.iter (fun pm -> Common.push pm matches) pms
+              (* TODO: unify_meta_envs here? *)
+             results |> List.iter (function | Dataflow_tainting.Sink (_taint, sink) -> Common.push (Dataflow_tainting.pm_of_sink sink) matches | Dataflow_tainting.Return _ -> () )
            in
            taint_config_of_rule default_config equivs file (ast, []) rule
              taint_spec found_tainted_sink)
