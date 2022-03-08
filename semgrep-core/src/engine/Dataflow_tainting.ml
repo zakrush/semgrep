@@ -38,48 +38,46 @@ let logger = Logging.get_logger [ __MODULE__ ]
 (* Types *)
 (*****************************************************************************)
 
-(* TODO:
-
-type match =
-  | PM of Pattern_match
-  | Call of G.expr * match
-
-type source = match
-
-type sink = match
-
-type taint = Src of source | Arg of int
- *)
-
 type deep_match = PM of Pattern_match.t | Call of G.expr * deep_match
 
 let rec pm_of_deep = function
   | PM pm -> pm
   | Call (_, dm) -> pm_of_deep dm
 
-type sink = deep_match
-
 type source = deep_match
 
-type taint = Src of PM.t | Arg of (* position *) int
+type sink = deep_match
+
+type taint = Src of source | Arg of (* position *) int
 
 module Tainted = Set.Make (struct
   type t = taint
 
-  (* If the pattern matches are obviously different (have different ranges), this is enough to compare them.
-     If their ranges are the same, compare their metavariable environments. This is not robust to reordering
-     metavariable environments. [("$A",e1);("$B",e2)] is not equal to [("$B",e2);("$A",e1)]. This should be ok
-     but is potentially a source of duplicate findings in taint mode, where these sets are used.
-  *)
   let compare_pm pm1 pm2 =
+    (* If the pattern matches are obviously different (have different ranges),
+     * we are done. If their ranges are the same, we compare their metavariable
+     * environments. This is not robust to reordering metavariable environments,
+     * e.g.: [("$A",e1);("$B",e2)] is not equal to [("$B",e2);("$A",e1)]. This
+     * is potentially a source of duplicate findings.
+     *)
     match compare pm1.PM.range_loc pm2.PM.range_loc with
     | 0 -> compare pm1.PM.env pm2.PM.env
     | c -> c
 
+  let rec compare_dm dm1 dm2 =
+    match (dm1, dm2) with
+    | PM p, PM q -> compare_pm p q
+    | PM _, Call _ -> -1
+    | Call _, PM _ -> 1
+    | Call (c1, d1), Call (c2, d2) ->
+        let c_cmp = Int.compare c1.e_id c2.e_id in
+        if c_cmp <> 0 then c_cmp else compare_dm d1 d2
+
+  (* TODO: Rely on ppx_deriving.ord ? *)
   let compare t1 t2 =
     match (t1, t2) with
     | Arg i, Arg j -> Int.compare i j
-    | Src p, Src q -> compare_pm p q
+    | Src p, Src q -> compare_dm p q
     | Arg _, Src _ -> -1
     | Src _, Arg _ -> 1
 end)
@@ -100,7 +98,7 @@ let _ignore () =
   ignore show_tainted;
   ignore env_to_str
 
-type result = Sink of Tainted.elt * deep_match | Return of Tainted.elt
+type finding = Sink of Tainted.elt * deep_match | Return of Tainted.elt
 
 (* TODO: s/Return/Propagate, and add Sanitize of Tainted.elt *)
 
@@ -111,12 +109,13 @@ type mapping = Tainted.t Dataflow_core.mapping
     the full pattern match information eventually.
 *)
 
-(* Tracks tainted functions. *)
+(* HACK: Tracks tainted functions intrafile. *)
 type fun_env = (Dataflow_core.var, PM.Set.t) Hashtbl.t
 
-(* is_source/sink/sanitizer returns a list of ways that some piece of code can be matched as a source/sink/sanitizer *)
+(* is_source/sink/sanitizer returns a list of ways that some piece of code can be matched
+ * as a source/sink/sanitizer, what is more important is that the metavariable bindings
+ * may differ between them. *)
 type config = {
-  (* Add filepath and rule_id to then use DeepSemgrep hooks.  *)
   filepath : Common.filename;
   rule_id : string;
   is_source : G.any -> PM.t list;
@@ -124,7 +123,7 @@ type config = {
   is_sanitizer : G.any -> PM.t list;
   found_tainted_sink :
     Dataflow_core.var option ->
-    result list ->
+    finding list ->
     Tainted.t Dataflow_core.env ->
     unit;
 }
@@ -209,13 +208,14 @@ let _set_filter_map f pm_set =
 (* @param sink_pm Pattern match of a sink.
    @param src_pms Set of pattern matches corresponding to sources.
    @returns PM.Set.t containing a copy [sink_pm] with an updated metavariable environment for each PM in [src_pms] whose env unifies with [sink_pm]s. *)
-let update_meta_envs (sink : sink) (tainted : Tainted.t) : result list =
+let update_meta_envs (sink : sink) (tainted : Tainted.t) : finding list =
   let ( let* ) = Option.bind in
   Tainted.elements tainted
   |> List.filter_map (fun taint ->
          match taint with
          | Arg _ -> Some (Sink (taint, sink))
-         | Src src_pm ->
+         | Src src ->
+             let src_pm = pm_of_deep src in
              let sink_pm = pm_of_deep sink in
              let* _env = unify_meta_envs sink_pm.PM.env src_pm.PM.env in
              Some (Sink (taint, sink)))
@@ -226,7 +226,7 @@ let update_meta_envs (sink : sink) (tainted : Tainted.t) : result list =
    to include the bindings from the source whose environment unified with it.
  *)
 let make_tainted_sink_matches (sinks : sink list) (tainted : Tainted.t) :
-    result list =
+    finding list =
   sinks |> List.concat_map (fun sink -> update_meta_envs sink tainted)
 
 (*****************************************************************************)
@@ -245,13 +245,13 @@ let check_tainted_var config opt_name (fun_env : fun_env)
     else ([], [], [])
   in
   let tainted_pms : Tainted.t =
-    Tainted.of_list (List.map (fun pm -> Src pm) source_pms)
+    Tainted.of_list (List.map (fun pm -> Src (PM pm)) source_pms)
     |> Tainted.union (set_opt_to_set (VarMap.find_opt (str_of_name var) env))
     |> Tainted.union
          (Hashtbl.find_opt fun_env (str_of_name var)
          |> Option.value ~default:PM.Set.empty
          |> PM.Set.elements
-         |> List.map (fun pm -> Src pm)
+         |> List.map (fun pm -> Src (PM pm))
          |> Tainted.of_list)
     (* |> PM.Set.union (is_tainted_function_hook config ((G.Id (var.ident, var.id_info)))) *)
   in
@@ -289,7 +289,7 @@ let rec check_tainted_expr config opt_name (fun_env : fun_env)
         Hashtbl.find_opt fun_env (str_of_name fld)
         |> Option.value ~default:PM.Set.empty
         |> PM.Set.elements
-        |> List.map (fun pm -> Src pm)
+        |> List.map (fun pm -> Src (PM pm))
         |> Tainted.of_list
     | Fetch
         {
@@ -328,7 +328,8 @@ let rec check_tainted_expr config opt_name (fun_env : fun_env)
       let tainted_pms =
         Tainted.union (check_subexpr exp)
           (Tainted.of_list
-             (orig_is_source config exp.eorig |> List.map (fun pm -> Src pm)))
+             (orig_is_source config exp.eorig
+             |> List.map (fun pm -> Src (PM pm))))
       in
       let found = make_tainted_sink_matches sink_pms tainted_pms in
       if found <> [] then config.found_tainted_sink opt_name found env;
@@ -404,7 +405,8 @@ let check_tainted_instr config opt_name fun_env env instr : Tainted.t =
       let tainted_pms =
         Tainted.union (tainted_args instr.i)
           (Tainted.of_list
-             (orig_is_source config instr.iorig |> List.map (fun pm -> Src pm)))
+             (orig_is_source config instr.iorig
+             |> List.map (fun pm -> Src (PM pm))))
       in
       let found = make_tainted_sink_matches sink_pms tainted_pms in
       if found <> [] then config.found_tainted_sink opt_name found env;
@@ -478,7 +480,7 @@ let (transfer :
         let pmatches =
           tainted |> Tainted.elements
           |> List.filter_map (function
-               | Src pm -> Some pm
+               | Src src -> Some (pm_of_deep src)
                | Arg _ -> None)
           |> PM.Set.of_list
         in

@@ -1,16 +1,16 @@
-type taint = Src of Pattern_match.t | Arg of int
-
-module Tainted : Set.S with type elt = taint
-
 type deep_match =
   | PM of Pattern_match.t
   | Call of AST_generic.expr * deep_match
+
+type taint = Src of deep_match | Arg of int
+
+module Tainted : Set.S with type elt = taint
 
 type sink = deep_match
 
 type source = deep_match
 
-type result = Sink of Tainted.elt * sink | Return of Tainted.elt
+type finding = Sink of Tainted.elt * sink | Return of Tainted.elt
 
 type mapping = Tainted.t Dataflow_core.mapping
 (** Map for each node/var whether a variable is "tainted" *)
@@ -20,14 +20,14 @@ type fun_env = (Dataflow_core.var, Pattern_match.Set.t) Hashtbl.t
   * Note that here [Dataflow.var] is a string of the form "<source name>:<sid>". *)
 
 type config = {
-  filepath : Common.filename;
-  rule_id : string;
+  filepath : Common.filename;  (** Deep Semgrep *)
+  rule_id : string;  (** Deep Semgrep *)
   is_source : AST_generic.any -> Pattern_match.t list;
   is_sink : AST_generic.any -> Pattern_match.t list;
   is_sanitizer : AST_generic.any -> Pattern_match.t list;
   found_tainted_sink :
     Dataflow_core.var option ->
-    result list ->
+    finding list ->
     Tainted.t Dataflow_core.env ->
     unit;
 }
@@ -42,7 +42,7 @@ val unify_meta_envs :
   ('a * Metavariable.mvalue) list option
 
 val hook_tainted_function :
-  (config -> AST_generic.expr -> result list) option ref
+  (config -> AST_generic.expr -> finding list) option ref
 
 val fixpoint :
   config ->
