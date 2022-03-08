@@ -26,13 +26,16 @@ let test_dfg_tainting file =
              pr2 "Tainting";
              let config =
                {
-                 Dataflow_tainting.is_source = (fun _ -> []);
+                 Dataflow_tainting.filepath = file;
+                 rule_id = "test_dfg_tainting";
+                 is_source = (fun _ -> []);
                  is_sink = (fun _ -> []);
                  is_sanitizer = (fun _ -> []);
-                 found_tainted_sink = (fun _ _ -> ());
+                 found_tainted_sink = (fun _ _ _ -> ());
                }
              in
-             let opt_name = AST_to_IL.name_of_entity ent in
+             let opt_name = AST_to_IL.name_of_entity ent
+             |> Option.map (fun name -> spf "%s:%d" (fst name.IL.ident) name.IL.sid) in
              let mapping =
                Dataflow_tainting.fixpoint config fun_env opt_name flow
              in

@@ -161,8 +161,18 @@ let taint_config_of_rule default_config equivs file ast_and_errors
              else None
            else Some rng)
   in
+  sources_ranges
+  |> List.iter (fun rwm ->
+         let r = rwm.Range_with_metavars.r in
+         logger#flash "[taint] source: %d-%d\n" r.Range.start r.Range.end_);
+  sinks_ranges
+  |> List.iter (fun rwm ->
+         let r = rwm.Range_with_metavars.r in
+         logger#flash "[taint] sink: %d-%d\n" r.Range.start r.Range.end_);
   {
-    Dataflow_tainting.is_source = (fun x -> any_in_ranges x sources_ranges);
+    Dataflow_tainting.filepath = file;
+    rule_id = fst rule.R.id;
+    is_source = (fun x -> any_in_ranges x sources_ranges);
     is_sanitizer = (fun x -> any_in_ranges x sanitizers_ranges);
     is_sink = (fun x -> any_in_ranges x sinks_ranges);
     found_tainted_sink;
@@ -192,8 +202,17 @@ let check_rule rule match_hook (default_config, equivs) taint_spec xtarget =
     Common.with_time (fun () -> lazy_force lazy_ast_and_errors)
   in
   let taint_config =
-    let found_tainted_sink pms _env =
-      PM.Set.iter (fun pm -> Common.push pm matches) pms
+    let found_tainted_sink _ results (* pms *) _env =
+      (* TODO: unify_meta_envs here? *)
+      results
+      |> List.iter
+           Dataflow_tainting.(
+             function
+             | Sink (Src _, sink) ->
+                 Common.push (Dataflow_tainting.pm_of_deep sink) matches
+             | Sink _
+             | Return _ ->
+                 ())
     in
     taint_config_of_rule default_config equivs file (ast, []) rule taint_spec
       found_tainted_sink
@@ -223,7 +242,11 @@ let check_rule rule match_hook (default_config, equivs) taint_spec xtarget =
           (fun (k, _v) ((ent, def_kind) as def) ->
             match def_kind with
             | G.FuncDef fdef ->
-                let opt_name = AST_to_IL.name_of_entity ent in
+                let opt_name =
+                  AST_to_IL.name_of_entity ent
+                  |> Option.map (fun name ->
+                         Common.spf "%s:%d" (fst name.IL.ident) name.IL.sid)
+                in
                 check_stmt opt_name (H.funcbody_to_stmt fdef.G.fbody);
                 (* go into nested functions *)
                 k def
@@ -263,3 +286,46 @@ let check_rule rule match_hook (default_config, equivs) taint_spec xtarget =
     skipped = [];
     profiling = { RP.rule_id = fst rule.Rule.id; parse_time; match_time };
   }
+
+let check_def file lang taint_rules taint_configs ent_name fdef =
+  let str_of_name name = Common.spf "%s:%d" (fst name.IL.ident) name.IL.sid in
+
+  let in_env =
+    List.fold_left
+      (fun (i, env) par ->
+        match par with
+        | G.Param { pname = Some id; pinfo; _ } ->
+            let var = str_of_name (AST_to_IL.var_of_id_info id pinfo) in
+            let env =
+              Dataflow_core.VarMap.add var
+                (Dataflow_tainting.Arg i |> Dataflow_tainting.Tainted.singleton)
+                env
+            in
+            logger#flash "[taint] check_def: in_env: %s -> Arg %d" var i;
+            (i + 1, env)
+        | _ -> (i + 1, env))
+      (0, Dataflow_core.VarMap.empty)
+      fdef.G.fparams
+    |> snd
+  in
+
+  logger#flash "[taint] check_def: in_env# = %d"
+    (Dataflow_core.VarMap.cardinal in_env);
+
+  let check_stmt name def_body =
+    let xs = AST_to_IL.stmt lang def_body in
+    let flow = CFG_build.cfg_of_stmts xs in
+
+    taint_rules
+    |> List.iter (fun taint_rule ->
+           let taint_config =
+             Hashtbl.find taint_configs (file, fst taint_rule.Rule.id)
+           in
+           let fun_env = Hashtbl.create 8 in
+           let mapping =
+             Dataflow_tainting.fixpoint taint_config fun_env (Some name) ~in_env
+               flow
+           in
+           ignore mapping)
+  in
+  check_stmt ent_name (H.funcbody_to_stmt fdef.G.fbody)

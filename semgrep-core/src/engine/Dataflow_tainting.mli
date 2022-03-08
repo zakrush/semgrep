@@ -1,4 +1,18 @@
-type mapping = Pattern_match.Set.t Dataflow_core.mapping
+type taint = Src of Pattern_match.t | Arg of int
+
+module Tainted : Set.S with type elt = taint
+
+type deep_match =
+  | PM of Pattern_match.t
+  | Call of AST_generic.expr * deep_match
+
+type sink = deep_match
+
+type source = deep_match
+
+type result = Sink of Tainted.elt * sink | Return of Tainted.elt
+
+type mapping = Tainted.t Dataflow_core.mapping
 (** Map for each node/var whether a variable is "tainted" *)
 
 type fun_env = (Dataflow_core.var, Pattern_match.Set.t) Hashtbl.t
@@ -6,16 +20,37 @@ type fun_env = (Dataflow_core.var, Pattern_match.Set.t) Hashtbl.t
   * Note that here [Dataflow.var] is a string of the form "<source name>:<sid>". *)
 
 type config = {
+  filepath : Common.filename;
+  rule_id : string;
   is_source : AST_generic.any -> Pattern_match.t list;
   is_sink : AST_generic.any -> Pattern_match.t list;
   is_sanitizer : AST_generic.any -> Pattern_match.t list;
   found_tainted_sink :
-    Pattern_match.Set.t -> Pattern_match.Set.t Dataflow_core.env -> unit;
+    Dataflow_core.var option ->
+    result list ->
+    Tainted.t Dataflow_core.env ->
+    unit;
 }
 (** This can use semgrep patterns under the hood. Note that a source can be an
   * instruction but also an expression. *)
 
-val fixpoint : config -> fun_env -> IL.name option -> IL.cfg -> mapping
+val pm_of_deep : deep_match -> Pattern_match.t
+
+val unify_meta_envs :
+  ('a * Metavariable.mvalue) list ->
+  ('a * Metavariable.mvalue) list ->
+  ('a * Metavariable.mvalue) list option
+
+val hook_tainted_function :
+  (config -> AST_generic.expr -> result list) option ref
+
+val fixpoint :
+  config ->
+  fun_env ->
+  Dataflow_core.var option ->
+  ?in_env:Tainted.t Dataflow_core.VarMap.t ->
+  IL.cfg ->
+  mapping
 (** Main entry point, [fixpoint config fun_env opt_name cfg] returns a mapping
   * (effectively a set) containing all the tainted variables in [cfg]. Besides,
   * if it finds an instruction that consumes tainted data, then it will invoke
