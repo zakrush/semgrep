@@ -1,14 +1,18 @@
+(** A match that spans multiple functions (aka "deep").
+  * E.g. Call('foo(a)', PM('sink(x)')) is an indirect match for 'sink(x)'
+  * through the function call 'foo(a)'. *)
 type deep_match =
-  | PM of Pattern_match.t
+  | PM of Pattern_match.t  (** A direct match.  *)
   | Call of AST_generic.expr * deep_match
+      (** An indirect match through a function call. *)
 
-type taint = Src of deep_match | Arg of int
-
-module Tainted : Set.S with type elt = taint
+type source = deep_match
 
 type sink = deep_match
 
-type source = deep_match
+type taint = Src of source | Arg of (* position *) int
+
+module Tainted : Set.S with type elt = taint
 
 type finding = Sink of Tainted.elt * sink | Return of Tainted.elt
 

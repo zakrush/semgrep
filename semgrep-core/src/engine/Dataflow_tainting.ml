@@ -34,8 +34,18 @@ let logger = Logging.get_logger [ __MODULE__ ]
  * so it was moved to semgrep-core/src/engine
  *)
 
+module DataflowX = Dataflow_core.Make (struct
+  type node = F.node
+
+  type edge = F.edge
+
+  type flow = (node, edge) CFG.t
+
+  let short_string_of_node n = Display_IL.short_string_of_node_kind n.F.n
+end)
+
 (*****************************************************************************)
-(* Types *)
+(* Sources, sinks, and findings *)
 (*****************************************************************************)
 
 type deep_match = PM of Pattern_match.t | Call of G.expr * deep_match
@@ -48,7 +58,7 @@ type source = deep_match
 
 type sink = deep_match
 
-type taint = Src of source | Arg of (* position *) int
+type taint = Src of source | Arg of int
 
 module Tainted = Set.Make (struct
   type t = taint
@@ -82,22 +92,6 @@ module Tainted = Set.Make (struct
     | Src _, Arg _ -> 1
 end)
 
-let show_tainted tainted =
-  tainted |> Tainted.elements
-  |> List.map (function
-       | Src _ -> "PM"
-       | Arg i -> "Arg " ^ string_of_int i)
-  |> String.concat ", "
-  |> fun str -> "{ " ^ str ^ " }"
-
-let (env_to_str : ('a -> string) -> 'a VarMap.t -> string) =
- fun val2str env ->
-  VarMap.fold (fun dn v s -> s ^ dn ^ ":" ^ val2str v ^ " ") env ""
-
-let _ignore () =
-  ignore show_tainted;
-  ignore env_to_str
-
 type finding = Sink of Tainted.elt * deep_match | Return of Tainted.elt
 
 (* TODO: s/Return/Propagate, and add Sanitize of Tainted.elt *)
@@ -130,15 +124,22 @@ type config = {
 (** This can use semgrep patterns under the hood. Note that a source can be an
   * instruction but also an expression. *)
 
-module DataflowX = Dataflow_core.Make (struct
-  type node = F.node
+(* Debug *)
 
-  type edge = F.edge
+let show_tainted tainted =
+  tainted |> Tainted.elements
+  |> List.map (function
+       | Src _ -> "PM"
+       | Arg i -> "Arg " ^ string_of_int i)
+  |> String.concat ", "
+  |> fun str -> "{ " ^ str ^ " }"
 
-  type flow = (node, edge) CFG.t
-
-  let short_string_of_node n = Display_IL.short_string_of_node_kind n.F.n
-end)
+let show_env =
+  let (env_to_str : ('a -> string) -> 'a VarMap.t -> string) =
+   fun val2str env ->
+    VarMap.fold (fun dn v s -> s ^ dn ^ ":" ^ val2str v ^ " ") env ""
+  in
+  env_to_str show_tainted
 
 (*****************************************************************************)
 (* Hooks *)
