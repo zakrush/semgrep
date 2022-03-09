@@ -428,12 +428,21 @@ def manual_config(
     }
 
 
-def resolve_targets(targets: Sequence[str]) -> Sequence[Path]:
+def resolve_target(target: str) -> Path:
+    """
+    Return Path objects appropriately resolving relative path
+    (relative to cwd) if necessary
+    """
     base_path = get_base_path()
-    return [
-        Path(target) if Path(target).is_absolute() else base_path.joinpath(target)
-        for target in targets
-    ]
+    return Path(target) if Path(target).is_absolute() else base_path.joinpath(target)
+
+
+def resolve_targets(targets: Sequence[str]) -> Sequence[Path]:
+    """
+    Return list of Path objects appropriately resolving relative paths
+    (relative to cwd) if necessary
+    """
+    return [resolve_target(target) for target in targets]
 
 
 def adjust_for_docker() -> None:
