@@ -1,8 +1,5 @@
 {
-  "scanned": [
-    "targets/ignores/find.js",
-    "targets/ignores/ok/find.js"
-  ],
+  "scanned": [],
   "skipped": [
     {
       "path": "targets/ignores/ignore.min.js",
@@ -11,10 +8,6 @@
     {
       "path": "targets/ignores/ignore_test.js",
       "reason": "cli_include_flags_do_not_match"
-    },
-    {
-      "path": "targets/ignores/tests/ignore.js",
-      "reason": "semgrepignore_patterns_match"
     }
   ]
 }

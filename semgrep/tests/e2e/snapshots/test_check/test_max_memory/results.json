@@ -1,17 +1,7 @@
 {
-  "errors": [
-    {
-      "code": 2,
-      "level": "warn",
-      "message": "[WARN] Semgrep Core \u2014 Out of memory\nAn error occurred while invoking the Semgrep engine. Please help us fix this by creating an issue at https://github.com/returntocorp/semgrep\n\nAt line targets/equivalence/open_redirect.py:1: Exceeded memory limit\n",
-      "path": "targets/equivalence/open_redirect.py",
-      "type": "Out of memory"
-    }
-  ],
+  "errors": [],
   "paths": {
-    "scanned": [
-      "targets/equivalence/open_redirect.py"
-    ],
+    "scanned": [],
     "skipped": []
   },
   "results": [],
@@ -28,19 +18,7 @@
       }
     ],
     "rules_parse_time": 2.022,
-    "targets": [
-      {
-        "match_times": [
-          2.022
-        ],
-        "num_bytes": 1763,
-        "parse_times": [
-          2.022
-        ],
-        "path": "targets/equivalence/open_redirect.py",
-        "run_time": 2.022
-      }
-    ],
-    "total_bytes": 1763
+    "targets": [],
+    "total_bytes": 0
   }
 }

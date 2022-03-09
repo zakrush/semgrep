@@ -1,18 +1,7 @@
 {
-  "errors": [
-    {
-      "code": 2,
-      "level": "warn",
-      "message": "[WARN] Semgrep Core \u2014 Timeout\nAn error occurred while invoking the Semgrep engine. Please help us fix this by creating an issue at https://github.com/returntocorp/semgrep\n\nWhen running rules.forcetimeout on targets/equivalence/open_redirect.py: \n",
-      "path": "targets/equivalence/open_redirect.py",
-      "rule_id": "rules.forcetimeout",
-      "type": "Timeout"
-    }
-  ],
+  "errors": [],
   "paths": {
-    "scanned": [
-      "targets/equivalence/open_redirect.py"
-    ],
+    "scanned": [],
     "skipped": []
   },
   "results": [],
@@ -35,23 +24,7 @@
       }
     ],
     "rules_parse_time": 2.022,
-    "targets": [
-      {
-        "match_times": [
-          2.022,
-          2.022,
-          2.022
-        ],
-        "num_bytes": 1763,
-        "parse_times": [
-          2.022,
-          2.022,
-          2.022
-        ],
-        "path": "targets/equivalence/open_redirect.py",
-        "run_time": 2.022
-      }
-    ],
-    "total_bytes": 1763
+    "targets": [],
+    "total_bytes": 0
   }
 }

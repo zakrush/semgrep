@@ -8,57 +8,7 @@
           "toolExecutionNotifications": []
         }
       ],
-      "results": [
-        {
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "targets/basic/regex-nosemgrep.txt",
-                  "uriBaseId": "%SRCROOT%"
-                },
-                "region": {
-                  "endColumn": 30,
-                  "endLine": 1,
-                  "startColumn": 1,
-                  "startLine": 1
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "AWS Account ID detected"
-          },
-          "ruleId": "rules.detected-aws-account-id",
-          "suppressions": [
-            {
-              "kind": "inSource"
-            }
-          ]
-        },
-        {
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "targets/basic/regex-nosemgrep.txt",
-                  "uriBaseId": "%SRCROOT%"
-                },
-                "region": {
-                  "endColumn": 28,
-                  "endLine": 3,
-                  "startColumn": 1,
-                  "startLine": 3
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "AWS Account ID detected"
-          },
-          "ruleId": "rules.detected-aws-account-id"
-        }
-      ],
+      "results": [],
       "tool": {
         "driver": {
           "name": "semgrep",

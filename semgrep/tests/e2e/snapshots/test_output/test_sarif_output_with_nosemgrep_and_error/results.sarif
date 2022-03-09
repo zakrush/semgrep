@@ -8,35 +8,7 @@
           "toolExecutionNotifications": []
         }
       ],
-      "results": [
-        {
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "targets/nosemgrep/eqeq-nosemgrep.py",
-                  "uriBaseId": "%SRCROOT%"
-                },
-                "region": {
-                  "endColumn": 26,
-                  "endLine": 2,
-                  "startColumn": 12,
-                  "startLine": 2
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "useless comparison operation `a + b == a + b` or `a + b != a + b`; possible bug?"
-          },
-          "ruleId": "rules.eqeq-is-bad",
-          "suppressions": [
-            {
-              "kind": "inSource"
-            }
-          ]
-        }
-      ],
+      "results": [],
       "tool": {
         "driver": {
           "name": "semgrep",
