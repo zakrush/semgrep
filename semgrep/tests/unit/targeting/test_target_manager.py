@@ -335,9 +335,9 @@ def test_ignore_git_dir(tmp_path, monkeypatch):
 
     monkeypatch.chdir(tmp_path)
     language = Language("generic")
-    assert frozenset() == TargetManager([], [], 0, [foo], True, False, None).get_files(
-        language, [], [], "dummy_rule_id"
-    )
+    assert frozenset() == TargetManager(
+        [], [], 0, [foo], True, False, None
+    ).get_files_for_rule(language, [], [], "dummy_rule_id")
 
 
 def test_explicit_path(tmp_path, monkeypatch):
@@ -360,22 +360,22 @@ def test_explicit_path(tmp_path, monkeypatch):
 
     assert foo_a in TargetManager(
         [], [], 0, ["foo/a.py"], False, False, None
-    ).get_files(python_language, [], [], "dummy_rule_id")
-    assert foo_a in TargetManager([], [], 0, ["foo/a.py"], False, True, None).get_files(
-        python_language, [], [], "dummy_rule_id"
-    )
+    ).get_files_for_rule(python_language, [], [], "dummy_rule_id")
+    assert foo_a in TargetManager(
+        [], [], 0, ["foo/a.py"], False, True, None
+    ).get_files_for_rule(python_language, [], [], "dummy_rule_id")
 
     # Should include explicitly passed python file even if is in excludes
     assert foo_a not in TargetManager(
         [], ["foo/a.py"], 0, ["."], False, False, None
-    ).get_files(python_language, [], [], "dummy_rule_id")
+    ).get_files_for_rule(python_language, [], [], "dummy_rule_id")
     assert foo_a in TargetManager(
         [], ["foo/a.py"], 0, [".", "foo/a.py"], False, False, None
-    ).get_files(python_language, [], [], "dummy_rule_id")
+    ).get_files_for_rule(python_language, [], [], "dummy_rule_id")
 
     # Should ignore expliclty passed .go file when requesting python
     assert (
-        TargetManager([], [], 0, ["foo/a.go"], False, False, None).get_files(
+        TargetManager([], [], 0, ["foo/a.go"], False, False, None).get_files_for_rule(
             python_language, [], [], "dummy_rule_id"
         )
         == frozenset()
@@ -383,7 +383,7 @@ def test_explicit_path(tmp_path, monkeypatch):
 
     # Should include explicitly passed file with unknown extension if skip_unknown_extensions=False
     assert_path_sets_equal(
-        TargetManager([], [], 0, ["foo/noext"], False, False, None).get_files(
+        TargetManager([], [], 0, ["foo/noext"], False, False, None).get_files_for_rule(
             python_language, [], [], "dummy_rule_id"
         ),
         {foo_noext},
@@ -391,7 +391,7 @@ def test_explicit_path(tmp_path, monkeypatch):
 
     # Should not include explicitly passed file with unknown extension if skip_unknown_extensions=True
     assert_path_sets_equal(
-        TargetManager([], [], 0, ["foo/noext"], False, True, None).get_files(
+        TargetManager([], [], 0, ["foo/noext"], False, True, None).get_files_for_rule(
             python_language, [], [], "dummy_rule_id"
         ),
         set(),
@@ -401,7 +401,7 @@ def test_explicit_path(tmp_path, monkeypatch):
     assert_path_sets_equal(
         TargetManager(
             [], [], 0, ["foo/noext", "foo/a.py"], False, True, None
-        ).get_files(python_language, [], [], "dummy_rule_id"),
+        ).get_files_for_rule(python_language, [], [], "dummy_rule_id"),
         {foo_a},
     )
 
@@ -409,7 +409,7 @@ def test_explicit_path(tmp_path, monkeypatch):
     assert_path_sets_equal(
         TargetManager(
             [], [], 0, ["foo/a.py", "foo/b.py"], False, False, None
-        ).get_files(python_language, ["a.py"], [], "dummy_rule_id"),
+        ).get_files_for_rule(python_language, ["a.py"], [], "dummy_rule_id"),
         {foo_a},
     )
 
@@ -418,7 +418,7 @@ def test_ignores(tmp_path, monkeypatch):
     def ignore(ignore_pats):
         return TargetManager(
             [], [], 0, [tmp_path], False, False, FileIgnore(tmp_path, ignore_pats)
-        ).get_files(Language("python"), [], [], "dummy_rule_id")
+        ).get_files_for_rule(Language("python"), [], [], "dummy_rule_id")
 
     monkeypatch.chdir(tmp_path)
     a = tmp_path / "a.py"
