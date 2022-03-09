@@ -28,6 +28,8 @@ let logger = Logging.get_logger [ __MODULE__ ]
 (* Tainting dataflow analysis.
  *
  * This is a very rudimentary tainting analysis.
+ * It is a MAY analysis, it finds *potential* bugs (the tainted path could not
+ * be feasible in practice).
  * Very coarse grained (taint whole array/object).
  * This is step1 for taint tracking support in semgrep.
  * This was originally in semgrep-core/src/analyze, but it now depends on Pattern_match,
@@ -45,21 +47,24 @@ module DataflowX = Dataflow_core.Make (struct
 end)
 
 (*****************************************************************************)
-(* Sources, sinks, and findings *)
+(* Types *)
 (*****************************************************************************)
 
-type deep_match = PM of Pattern_match.t | Call of G.expr * deep_match
+type var = Dataflow_core.var
 
-let rec pm_of_deep = function
-  | PM pm -> pm
-  | Call (_, dm) -> pm_of_deep dm
+type deep_match = PM of Pattern_match.t | Call of G.expr * deep_match
 
 type source = deep_match
 
 type sink = deep_match
 
+(* TODO: Add tracing info, e.g. what intermediate variables have been tainted. *)
 type taint = Src of source | Arg of int
 
+type finding = Sink of taint * sink | Return of taint
+
+(* We use a set simply to avoid duplicate findings.
+ * THINK: Should we just let them pass here and be filtered out later on? *)
 module Tainted = Set.Make (struct
   type t = taint
 
@@ -68,7 +73,7 @@ module Tainted = Set.Make (struct
      * we are done. If their ranges are the same, we compare their metavariable
      * environments. This is not robust to reordering metavariable environments,
      * e.g.: [("$A",e1);("$B",e2)] is not equal to [("$B",e2);("$A",e1)]. This
-     * is potentially a source of duplicate findings.
+     * is a potential source of duplicate findings, but that is OK.
      *)
     match compare pm1.PM.range_loc pm2.PM.range_loc with
     | 0 -> compare pm1.PM.env pm2.PM.env
@@ -92,23 +97,6 @@ module Tainted = Set.Make (struct
     | Src _, Arg _ -> 1
 end)
 
-type finding = Sink of Tainted.elt * deep_match | Return of Tainted.elt
-
-(* TODO: s/Return/Propagate, and add Sanitize of Tainted.elt *)
-
-type mapping = Tainted.t Dataflow_core.mapping
-(** Map for each node/var of all the pattern matches that originated its taint.
-    Anything not included in the map is not tainted. Currently we only strictly need
-    the metavariable environment in these pattern matches, but we plan to make use of
-    the full pattern match information eventually.
-*)
-
-(* HACK: Tracks tainted functions intrafile. *)
-type fun_env = (Dataflow_core.var, PM.Set.t) Hashtbl.t
-
-(* is_source/sink/sanitizer returns a list of ways that some piece of code can be matched
- * as a source/sink/sanitizer, what is more important is that the metavariable bindings
- * may differ between them. *)
 type config = {
   filepath : Common.filename;
   rule_id : string;
@@ -116,30 +104,13 @@ type config = {
   is_sink : G.any -> PM.t list;
   is_sanitizer : G.any -> PM.t list;
   found_tainted_sink :
-    Dataflow_core.var option ->
-    finding list ->
-    Tainted.t Dataflow_core.env ->
-    unit;
+    var option -> finding list -> Tainted.t Dataflow_core.env -> unit;
 }
-(** This can use semgrep patterns under the hood. Note that a source can be an
-  * instruction but also an expression. *)
 
-(* Debug *)
+type mapping = Tainted.t Dataflow_core.mapping
 
-let show_tainted tainted =
-  tainted |> Tainted.elements
-  |> List.map (function
-       | Src _ -> "PM"
-       | Arg i -> "Arg " ^ string_of_int i)
-  |> String.concat ", "
-  |> fun str -> "{ " ^ str ^ " }"
-
-let show_env =
-  let (env_to_str : ('a -> string) -> 'a VarMap.t -> string) =
-   fun val2str env ->
-    VarMap.fold (fun dn v s -> s ^ dn ^ ":" ^ val2str v ^ " ") env ""
-  in
-  env_to_str show_tainted
+(* HACK: Tracks tainted functions intrafile. *)
+type fun_env = (var, PM.Set.t) Hashtbl.t
 
 (*****************************************************************************)
 (* Hooks *)
@@ -148,8 +119,8 @@ let show_env =
 let hook_tainted_function = ref None
 
 let is_tainted_function_hook config e =
-  logger#flash "[taint] is_tainted_function_hook (file=%s, rule=%s): %s\n"
-    config.filepath config.rule_id (G.show_expr e);
+  (* logger#flash "[taint] is_tainted_function_hook (file=%s, rule=%s): %s\n"
+     config.filepath config.rule_id (G.show_expr e); *)
   match !hook_tainted_function with
   | None -> Tainted.empty
   | Some hook ->
@@ -162,6 +133,27 @@ let is_tainted_function_hook config e =
 (*****************************************************************************)
 (* Helpers *)
 (*****************************************************************************)
+
+let rec pm_of_deep = function
+  | PM pm -> pm
+  | Call (_, dm) -> pm_of_deep dm
+
+(* Debug *)
+let show_tainted tainted =
+  tainted |> Tainted.elements
+  |> List.map (function
+       | Src _ -> "PM"
+       | Arg i -> "Arg " ^ string_of_int i)
+  |> String.concat ", "
+  |> fun str -> "{ " ^ str ^ " }"
+
+(* Debug *)
+let _show_env =
+  let (env_to_str : ('a -> string) -> 'a VarMap.t -> string) =
+   fun val2str env ->
+    VarMap.fold (fun dn v s -> s ^ dn ^ ":" ^ val2str v ^ " ") env ""
+  in
+  env_to_str show_tainted
 
 let str_of_name name = spf "%s:%d" (fst name.ident) name.sid
 
@@ -197,14 +189,6 @@ let unify_meta_envs env1 env2 =
 
 let set_concat_map f xs =
   xs |> List.map f |> List.fold_left Tainted.union Tainted.empty
-
-let _set_filter_map f pm_set =
-  PM.Set.fold
-    (fun pm pm_set ->
-      match f pm with
-      | Some pm' -> PM.Set.add pm' pm_set
-      | None -> pm_set)
-    pm_set PM.Set.empty
 
 (* @param sink_pm Pattern match of a sink.
    @param src_pms Set of pattern matches corresponding to sources.
