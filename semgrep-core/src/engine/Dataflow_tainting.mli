@@ -9,23 +9,24 @@ type deep_match =
   | Call of AST_generic.expr * deep_match
       (** An indirect match through a function call. *)
 
-type source = deep_match
-
-type sink = deep_match
-
-type taint =
-  | Src of source  (** An actual taint source (`pattern-sources:` match). *)
+type source =
+  | Src of deep_match  (** An actual taint source (`pattern-sources:` match). *)
   | Arg of (* position *) int
       (** A taint variable (potential taint coming through an argument). *)
+
+type sink = deep_match
 
 (** Function-level finding (not necessarily a Semgrep finding). These may
   * depend on taint variables so they must be interpreted on a specific
   * context. *)
 type finding =
-  | Sink of taint * sink  (** Taint may go into a sink inside the function. *)
-  | Return of taint  (** Function's output may be tainted. *)
+  | Sink of source * sink * Metavariable.bindings option
+      (** Taint may go into a sink inside the function. If the source
+     * is an actual match, then we also include the unified
+     * bindings. *)
+  | Return of source  (** Function's output may be tainted. *)
 
-module Tainted : Set.S with type elt = taint
+module Taint : Set.S with type elt = source
 (** A set of taint sources. *)
 
 type config = {
@@ -43,17 +44,16 @@ type config = {
   found_tainted_sink :
     var option (** function name ('None' if anonymous) *) ->
     finding list ->
-    Tainted.t Dataflow_core.env ->
+    Taint.t Dataflow_core.env ->
     unit;
       (** Callback to report findings. *)
 }
 (** Taint rule instantiated for a given file.
   *
   * For a source to taint a sink, the bindings of both source and sink must be
-  * unifiable. Same applies for a sanitizer to remove taint from a source.
-  * See 'unify_meta_envs'. *)
+  * unifiable. See 'unify_meta_envs'. *)
 
-type mapping = Tainted.t Dataflow_core.mapping
+type mapping = Taint.t Dataflow_core.mapping
 (** Mapping from variables to taint sources (if the variable is tainted).
   * If a variable is not in the map, then it's not tainted. *)
 
@@ -66,6 +66,9 @@ val pm_of_deep : deep_match -> Pattern_match.t
 
 val unify_meta_envs :
   Metavariable.bindings -> Metavariable.bindings -> Metavariable.bindings option
+(** [unify_meta_envs env1 env2] returns [Some (env1 U env2)] if
+  * [env1] and [env2] contain no conflicting metavariable assignments,
+  * otherwise [None]. *)
 
 val hook_tainted_function :
   (config -> AST_generic.expr -> finding list) option ref
@@ -75,7 +78,7 @@ val fixpoint :
   config ->
   fun_env ->
   var option ->
-  ?in_env:Tainted.t Dataflow_core.VarMap.t ->
+  ?in_env:Taint.t Dataflow_core.VarMap.t ->
   IL.cfg ->
   mapping
 (** Main entry point, [fixpoint config fun_env opt_name cfg] returns a mapping
@@ -88,5 +91,4 @@ val fixpoint :
   *
   * Parameter [opt_name] is the name of the function being analyzed, if it has
   * a name. When [Some name] is given, and there is a tainted return statement in
-  * [cfg], the function [name] itself will be added to [fun_env] by side-effect.
-*)
+  * [cfg], the function [name] itself will be added to [fun_env] by side-effect. *)

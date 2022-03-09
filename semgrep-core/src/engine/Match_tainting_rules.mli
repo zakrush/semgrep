@@ -24,8 +24,8 @@ val taint_config_of_rule :
   AST_generic.program * Semgrep_error_code.error list ->
   Rule.rule ->
   Rule.taint_spec ->
-  (Dataflow_core.var option ->
+  (Dataflow_tainting.var option ->
   Dataflow_tainting.finding list ->
-  Dataflow_tainting.Tainted.t Dataflow_core.env ->
+  Dataflow_tainting.Taint.t Dataflow_core.env ->
   unit) ->
   Dataflow_tainting.config

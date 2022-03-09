@@ -208,8 +208,10 @@ let check_rule rule match_hook (default_config, equivs) taint_spec xtarget =
       |> List.iter
            Dataflow_tainting.(
              function
-             | Sink (Src _, sink) ->
-                 Common.push (Dataflow_tainting.pm_of_deep sink) matches
+             | Sink (Src _, sink, Some bindings) ->
+                 let sink_pm = Dataflow_tainting.pm_of_deep sink in
+                 let pm = { sink_pm with env = bindings } in
+                 Common.push pm matches
              | Sink _
              | Return _ ->
                  ())
@@ -298,7 +300,7 @@ let check_def file lang taint_rules taint_configs ent_name fdef =
             let var = str_of_name (AST_to_IL.var_of_id_info id pinfo) in
             let env =
               Dataflow_core.VarMap.add var
-                (Dataflow_tainting.Arg i |> Dataflow_tainting.Tainted.singleton)
+                (Dataflow_tainting.Arg i |> Dataflow_tainting.Taint.singleton)
                 env
             in
             logger#flash "[taint] check_def: in_env: %s -> Arg %d" var i;
