@@ -866,6 +866,8 @@ def scan(
                 severities=shown_severities,
             )
 
+            return filtered_matches_by_rule, filtered_rules, all_targets
+
     if enable_version_check:
         from semgrep.version import version_check
 
