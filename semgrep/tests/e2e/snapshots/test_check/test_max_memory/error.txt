@@ -1,8 +1,8 @@
 running 1 rules from 1 config rules/long.yaml_0
-Running 1 rules...
-rules:
-- rules.forcetimeout
 No .semgrepignore found. Using default .semgrepignore rules. See the docs for the list of default ignores: https://semgrep.dev/docs/cli-usage/#ignoring-files
+Rules:
+- rules.forcetimeout
+Scanning 1 file
 
 ========================================
 Files skipped:
