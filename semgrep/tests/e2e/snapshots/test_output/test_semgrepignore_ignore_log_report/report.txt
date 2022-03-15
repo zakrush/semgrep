@@ -30,5 +30,5 @@ Files skipped:
    • <none>
 
 
-skipped: all .gitignored files, 1 files not matching --include patterns, 1 files matching --exclude patterns, 1 files matching .semgrepignore patterns
+skipped: .gitignored files, 1 files not matching --include patterns, 1 files matching --exclude patterns, 1 files matching .semgrepignore patterns
 for a detailed list of skipped files, run semgrep with the --verbose flag

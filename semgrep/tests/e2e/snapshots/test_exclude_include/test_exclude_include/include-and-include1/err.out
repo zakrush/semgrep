@@ -1,9 +1,6 @@
-including files:
-- excluded
-- included
-Running 4 rules...
+scanning 4 files
 
-skipped: all .gitignored files
+skipped: .gitignored files
 for a detailed list of skipped files, run semgrep with the --verbose flag
 
 ran 4 rules on 4 files: 4 findings

@@ -1,6 +1,7 @@
+scanning 1 file
 Warning: 1 timeout error(s) in targets/spacegrep_timeout/gnu-lgplv2.txt when running the following rules: [-]
 
-skipped: all .gitignored files
+skipped: .gitignored files
 for a detailed list of skipped files, run semgrep with the --verbose flag
 
 ran 1 rules on 1 files: 0 findings
