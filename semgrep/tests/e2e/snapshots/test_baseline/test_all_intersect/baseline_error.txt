@@ -10,4 +10,4 @@ Scanning 1 file.
 Some files were skipped.
   Scan was limited to files changed since baseline commit.
 
-Ran 1 rule on 1 file: 0 findings.
+ran 1 rules on 1 files: 0 findings

@@ -3,5 +3,5 @@ Scanning 1 file.
 Some files were skipped.
   Scan was limited to files tracked by git.
 
-Ran 1 rule on 1 file: 1 finding.
+ran 1 rules on 1 files: 1 findings
 found problems analyzing 0 file; run with --verbose for details

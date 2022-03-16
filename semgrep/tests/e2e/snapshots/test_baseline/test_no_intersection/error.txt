@@ -3,4 +3,4 @@ Scanning 2 files.
 Some files were skipped.
   Scan was limited to files tracked by git.
 
-Ran 1 rule on 2 files: 1 finding.
+ran 1 rules on 2 files: 1 findings

@@ -6,4 +6,4 @@ Skipping baseline scan, because all current findings are in files that didn't ex
 Some files were skipped.
   Scan was limited to files changed since baseline commit.
 
-Ran 1 rule on 2 files: 1 finding.
+ran 1 rules on 2 files: 1 findings
