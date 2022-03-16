@@ -13,4 +13,4 @@ Scanning across multiple languages:
 Some files were skipped.
   Scan was limited to files tracked by git.
 
-Ran 4 rules on 14 files: 2 findings.
+ran 4 rules on 14 files: 2 findings

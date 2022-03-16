@@ -5,4 +5,4 @@ Some files were skipped.
   Scan skipped: 2 files matching --exclude patterns
   For a full list of skipped files, run semgrep with the --verbose flag.
 
-Ran 4 rules on 2 files: 2 findings.
+ran 4 rules on 2 files: 2 findings
