@@ -1,8 +1,15 @@
-Nothing to scan.
-
-Some files were skipped.
-  Scan was limited to files tracked by git.
-  Scan skipped: 4 files matching --exclude patterns
-  For a full list of skipped files, run semgrep with the --verbose flag.
-
-Ran 4 rules on 0 files: 0 findings.
+Traceback (most recent call last):
+  File "/usr/lib/python3.8/runpy.py", line 194, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.8/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/__main__.py", line 5, in <module>
+    from semgrep.cli import cli
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/cli.py", line 4, in <module>
+    from semgrep.commands.ci import ci
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/commands/ci.py", line 11, in <module>
+    from semgrep.commands.scan import CONTEXT_SETTINGS
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/commands/scan.py", line 488
+    optgroup.option(
+    ^
+SyntaxError: invalid syntax
