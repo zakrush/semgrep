@@ -22,12 +22,13 @@ from attrs import frozen
 
 from semgrep.constants import NOSEM_INLINE_COMMENT_RE
 from semgrep.constants import RuleSeverity
+from semgrep.output_from_core import Position
 from semgrep.types import JsonObject
 
 if TYPE_CHECKING:
     from semgrep.rule import Rule
 
-
+# TODO: This is almost the same output_from_core.Position. Eliminate?
 @frozen(order=True)
 class CoreLocation:
     """
@@ -50,6 +51,12 @@ class CoreLocation:
             "col": self.col,
             "offset": self.offset,
         }
+
+    @classmethod
+    def from_core(cls, pos: Position) -> "CoreLocation":
+        line = pos.line
+        col = pos.col
+        offset = pos.offset
 
     @classmethod
     def parse(cls, raw_json: JsonObject) -> "CoreLocation":

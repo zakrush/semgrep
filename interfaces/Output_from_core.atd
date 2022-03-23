@@ -39,8 +39,8 @@ type position = {
 (*****************************************************************************)
 
 type match_results = {
-  matches: match_ list;
-  errors: error list;
+  ~matches: match_ list;
+  ~errors: error list;
   skipped_targets <json name="skipped">: skipped_target list;
   (* skipped_rules was introduced  in semgrep 0.86 *)
   ?skipped_rules: skipped_rule list option;

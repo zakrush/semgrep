@@ -30,11 +30,13 @@ from semgrep.constants import USER_DATA_FOLDER
 from semgrep.core_output import CoreOutput
 from semgrep.core_output import CoreTiming
 from semgrep.core_output import RuleId
+from semgrep.core_output import to_semgrep_error
 from semgrep.error import _UnknownLanguageError
 from semgrep.error import SemgrepCoreError
 from semgrep.error import SemgrepError
 from semgrep.error import UnknownLanguageError
 from semgrep.error import with_color
+from semgrep.output_from_core import MatchResults
 from semgrep.profiling import ProfilingData
 from semgrep.profiling import Times
 from semgrep.rule import Rule
@@ -377,9 +379,9 @@ class CoreRunner:
             )
 
             if "errors" in output_json:
-                parsed_output = CoreOutput.parse(rules, output_json)
-                errors = parsed_output.errors
-                if len(errors) < 1:
+                match_results = MatchResults.from_json(output_json)
+                errors = match_results.errors
+                if errors:
                     self._fail(
                         "non-zero exit status errors array is empty in json response",
                         shell_command,
@@ -387,7 +389,7 @@ class CoreRunner:
                         core_stdout,
                         core_stderr,
                     )
-                raise errors[0].to_semgrep_error()
+                raise to_semgrep_error(errors[0])
             else:
                 self._fail(
                     'non-zero exit status with missing "errors" field in json response',
@@ -633,14 +635,15 @@ class CoreRunner:
                 runner.stdout,
                 runner.stderr,
             )
-            core_output = CoreOutput.parse(rules, output_json)
+            # core_output = CoreOutput.parse(rules, output_json)
+            core_output = MatchResults.from_json(output_json)
 
             if "time" in output_json:
                 self._add_match_times(profiling_data, core_output.timing)
 
             # end with tempfile.NamedTemporaryFile(...) ...
             outputs = core_output.rule_matches(rules)
-            parsed_errors = [e.to_semgrep_error() for e in core_output.errors]
+            parsed_errors = [to_semgrep_error(e) for e in core_output.errors]
             for err in core_output.errors:
                 if err.is_timeout():
                     assert err.path is not None
@@ -736,8 +739,8 @@ class CoreRunner:
                 runner.stdout,
                 runner.stderr,
             )
-            core_output = CoreOutput.parse(metachecks, output_json)
-
-            parsed_errors += [e.to_semgrep_error() for e in core_output.errors]
+            # core_output = CoreOutput.parse(metachecks, output_json)
+            core_output = MatchResults.from_json(output_json)
+            parsed_errors += [to_semgrep_error(e) for e in core_output.errors]
 
         return dedup_errors(parsed_errors)
