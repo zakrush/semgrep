@@ -21,7 +21,7 @@
                   "endColumn": 30,
                   "endLine": 1,
                   "snippet": {
-                    "text": "aws_account_id = 123456789012  # nosemgrep"
+                    "text": "aws_account_id = 123456789012"
                   },
                   "startColumn": 1,
                   "startLine": 1
@@ -32,12 +32,7 @@
           "message": {
             "text": "AWS Account ID detected"
           },
-          "ruleId": "rules.detected-aws-account-id",
-          "suppressions": [
-            {
-              "kind": "inSource"
-            }
-          ]
+          "ruleId": "rules.detected-aws-account-id"
         },
         {
           "locations": [

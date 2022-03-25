@@ -10,6 +10,101 @@
     {
       "check_id": "rules.detected-aws-account-id",
       "end": {
+        "col": 30,
+        "line": 1,
+        "offset": 29
+      },
+      "extra": {
+        "fingerprint": "f1823c994c879f9fe69e36f1904a7296",
+        "is_ignored": false,
+        "lines": "aws_account_id = 123456789012",
+        "message": "AWS Account ID detected",
+        "metadata": {
+          "shortlink": "https://sg.run/xyz2",
+          "source-rule-url": "https://github.com/grab/secret-scanner/blob/master/scanner/signatures/pattern.go"
+        },
+        "metavars": {
+          "$2": {
+            "abstract_content": "aws",
+            "end": {
+              "col": 4,
+              "line": 1,
+              "offset": 3
+            },
+            "start": {
+              "col": 1,
+              "line": 1,
+              "offset": 0
+            },
+            "unique_id": {
+              "md5sum": "<masked in tests>",
+              "type": "AST"
+            }
+          },
+          "$3": {
+            "abstract_content": "account",
+            "end": {
+              "col": 12,
+              "line": 1,
+              "offset": 11
+            },
+            "start": {
+              "col": 5,
+              "line": 1,
+              "offset": 4
+            },
+            "unique_id": {
+              "md5sum": "<masked in tests>",
+              "type": "AST"
+            }
+          },
+          "$4": {
+            "abstract_content": "id",
+            "end": {
+              "col": 15,
+              "line": 1,
+              "offset": 14
+            },
+            "start": {
+              "col": 13,
+              "line": 1,
+              "offset": 12
+            },
+            "unique_id": {
+              "md5sum": "<masked in tests>",
+              "type": "AST"
+            }
+          },
+          "$6": {
+            "abstract_content": "=",
+            "end": {
+              "col": 17,
+              "line": 1,
+              "offset": 16
+            },
+            "start": {
+              "col": 16,
+              "line": 1,
+              "offset": 15
+            },
+            "unique_id": {
+              "md5sum": "<masked in tests>",
+              "type": "AST"
+            }
+          }
+        },
+        "severity": "ERROR"
+      },
+      "path": "targets/basic/regex-nosemgrep.txt",
+      "start": {
+        "col": 1,
+        "line": 1,
+        "offset": 0
+      }
+    },
+    {
+      "check_id": "rules.detected-aws-account-id",
+      "end": {
         "col": 28,
         "line": 3,
         "offset": 71

@@ -55,8 +55,8 @@
       },
       "extra": {
         "fingerprint": "67c54169efa9c748edf95241ee778bdf",
-        "is_ignored": true,
-        "lines": "    test_nosem_func(); // nosem: rules.test-nosem",
+        "is_ignored": false,
+        "lines": "    test_nosem_func();",
         "message": "test-nosem-message",
         "metadata": {},
         "metavars": {},
@@ -101,8 +101,8 @@
       },
       "extra": {
         "fingerprint": "07e730a3e726e712edacef96fcadd56e",
-        "is_ignored": true,
-        "lines": "\ttest_nosem_func() // nosem: rules.test-nosem",
+        "is_ignored": false,
+        "lines": "\ttest_nosem_func()",
         "message": "test-nosem-message",
         "metadata": {},
         "metavars": {},
@@ -170,8 +170,8 @@
       },
       "extra": {
         "fingerprint": "cc984be310f9da74059c9c360d798105",
-        "is_ignored": true,
-        "lines": "        test_nosem_func(); // nosem: rules.test-nosem",
+        "is_ignored": false,
+        "lines": "        test_nosem_func();",
         "message": "test-nosem-message",
         "metadata": {},
         "metavars": {},
@@ -216,8 +216,8 @@
       },
       "extra": {
         "fingerprint": "ec9b3d5c685906c78a8684d058495f78",
-        "is_ignored": true,
-        "lines": "test_nosem_func() // nosem",
+        "is_ignored": false,
+        "lines": "test_nosem_func()",
         "message": "test-nosem-message",
         "metadata": {},
         "metavars": {},
@@ -239,8 +239,8 @@
       },
       "extra": {
         "fingerprint": "6aef39817c6259d5e9829fddd6ae6a93",
-        "is_ignored": true,
-        "lines": "test_nosem_func() // nosem: rules.test-nosem",
+        "is_ignored": false,
+        "lines": "test_nosem_func()",
         "message": "test-nosem-message",
         "metadata": {},
         "metavars": {},
@@ -262,8 +262,8 @@
       },
       "extra": {
         "fingerprint": "6aef39817c6259d5e9829fddd6ae6a93",
-        "is_ignored": true,
-        "lines": "test_nosem_func() // NOSEM: rules.test-nosem",
+        "is_ignored": false,
+        "lines": "test_nosem_func()",
         "message": "test-nosem-message",
         "metadata": {},
         "metavars": {},
@@ -284,7 +284,7 @@
         "offset": 180
       },
       "extra": {
-        "fingerprint": "c267f61d678cdd7bd6e5793aa237d0f1",
+        "fingerprint": "2fdb92573a653fffb2894f37738b2d22",
         "is_ignored": false,
         "lines": "test_nosem_func(\n    invalid_line // nosem: rules.test-nosem\n)",
         "message": "test-nosem-message",
@@ -376,7 +376,7 @@
         "offset": 364
       },
       "extra": {
-        "fingerprint": "e8b81bdbbf5fb56e9e50541288d71e9c",
+        "fingerprint": "80d41c62ea9c7399c0d9956641b814d5",
         "is_ignored": false,
         "lines": "test_nosem_func(\n  // nosem: rules.test-nosem\n  invalid_line\n)",
         "message": "test-nosem-message",
@@ -538,8 +538,8 @@
       },
       "extra": {
         "fingerprint": "e944dfa4ea3d36fe7febac1039edbd91",
-        "is_ignored": true,
-        "lines": "test_nosem_func()  # nosem: rules.test-nosem",
+        "is_ignored": false,
+        "lines": "test_nosem_func()",
         "message": "test-nosem-message",
         "metadata": {},
         "metavars": {},
@@ -561,8 +561,8 @@
       },
       "extra": {
         "fingerprint": "e944dfa4ea3d36fe7febac1039edbd91",
-        "is_ignored": true,
-        "lines": "test_nosem_func()  # NOSEM: rules.test-nosem",
+        "is_ignored": false,
+        "lines": "test_nosem_func()",
         "message": "test-nosem-message",
         "metadata": {},
         "metavars": {},
@@ -584,8 +584,8 @@
       },
       "extra": {
         "fingerprint": "e944dfa4ea3d36fe7febac1039edbd91",
-        "is_ignored": true,
-        "lines": "test_nosem_func()  # nosemgrep: rules.test-nosem",
+        "is_ignored": false,
+        "lines": "test_nosem_func()",
         "message": "test-nosem-message",
         "metadata": {},
         "metavars": {},
@@ -607,8 +607,8 @@
       },
       "extra": {
         "fingerprint": "e944dfa4ea3d36fe7febac1039edbd91",
-        "is_ignored": true,
-        "lines": "test_nosem_func()  # NOSEMGREP",
+        "is_ignored": false,
+        "lines": "test_nosem_func()",
         "message": "test-nosem-message",
         "metadata": {},
         "metavars": {},
@@ -630,8 +630,8 @@
       },
       "extra": {
         "fingerprint": "e944dfa4ea3d36fe7febac1039edbd91",
-        "is_ignored": true,
-        "lines": "test_nosem_func()  # nOseMgREP: rules.test-nosem",
+        "is_ignored": false,
+        "lines": "test_nosem_func()",
         "message": "test-nosem-message",
         "metadata": {},
         "metavars": {},
