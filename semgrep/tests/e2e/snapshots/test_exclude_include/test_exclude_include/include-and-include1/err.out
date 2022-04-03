@@ -1,6 +1,39 @@
 Scanning 4 files.
-
-Some files were skipped.
-  Scan was limited to files tracked by git.
-
-Ran 4 rules on 4 files: 4 findings.
+Traceback (most recent call last):
+  File "/usr/lib/python3.8/runpy.py", line 194, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.8/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/__main__.py", line 34, in <module>
+    sys.exit(main())
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/__main__.py", line 20, in main
+    cli()
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/click/core.py", line 1128, in __call__
+    return self.main(*args, **kwargs)
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/click/core.py", line 1053, in main
+    rv = self.invoke(ctx)
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/click/core.py", line 1659, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/click/core.py", line 1395, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/click/core.py", line 754, in invoke
+    return __callback(*args, **kwargs)
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/commands/scan.py", line 868, in scan
+    ) = semgrep.semgrep_main.main(
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/semgrep_main.py", line 343, in main
+    rule_matches_by_rule, semgrep_errors, all_targets, profiling_data = run_rules(
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/semgrep_main.py", line 149, in run_rules
+    ) = core_runner.invoke_semgrep(
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/core_runner.py", line 681, in invoke_semgrep
+    ) = self._run_rules_direct_to_semgrep_core(
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/core_runner.py", line 627, in _run_rules_direct_to_semgrep_core
+    returncode = runner.execute()
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/core_runner.py", line 250, in execute
+    subprocess.call("touch /tmp")
+  File "/usr/lib/python3.8/subprocess.py", line 340, in call
+    with Popen(*popenargs, **kwargs) as p:
+  File "/usr/lib/python3.8/subprocess.py", line 858, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.8/subprocess.py", line 1704, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'touch /tmp'

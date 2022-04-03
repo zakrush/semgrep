@@ -4,49 +4,42 @@ Rules:
 - rules.assert-eqeq-is-ok
 - rules.eqeq-is-bad
 Scanning 1 file with 2 python rules.
-[31m[22m[24m[31m[41m[22m[24m[[0m[38;5;231m[41m[1m[24mWARN[0m[31m[41m[22m[24m][0m Semgrep Core — Syntax error
-An error occurred while invoking the Semgrep engine. Please help us fix this by creating an issue at https://github.com/returntocorp/semgrep
-
-At line targets/bad/invalid_python.py:1: `
-    ` was unexpected
-[0m
-
-========================================
-Files skipped:
-========================================
-
-  [1m[24mAlways skipped by Semgrep:[0m
-
-   • <none>
-
-  [1m[24mSkipped by .gitignore:[0m
-  [1m[24m(Disable by passing --no-git-ignore)[0m
-
-   • <all files not listed by `git ls-files` were skipped>
-
-  [1m[24mSkipped by .semgrepignore:[0m
-  [1m[24m(See: https://semgrep.dev/docs/ignoring-files-folders-code/#understanding-semgrep-
-  defaults)[0m
-
-   • <none>
-
-  [1m[24mSkipped by --include patterns:[0m
-
-   • <none>
-
-  [1m[24mSkipped by --exclude patterns:[0m
-
-   • <none>
-
-  [1m[24mSkipped by limiting to files smaller than 1000000 bytes:[0m
-  [1m[24m(Adjust with the --max-target-bytes flag)[0m
-
-   • <none>
-
-
-Some files were skipped.
-  Scan was limited to files tracked by git.
-
-Ran 2 rules on 1 file: 0 findings.
-found problems analyzing 1 file; run with --verbose for details
 Not sending pseudonymous metrics since metrics are configured to AUTO and server usage is False
+Traceback (most recent call last):
+  File "/usr/lib/python3.8/runpy.py", line 194, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.8/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/__main__.py", line 34, in <module>
+    sys.exit(main())
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/__main__.py", line 20, in main
+    cli()
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/click/core.py", line 1128, in __call__
+    return self.main(*args, **kwargs)
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/click/core.py", line 1053, in main
+    rv = self.invoke(ctx)
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/click/core.py", line 1659, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/click/core.py", line 1395, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "/home/runner/.local/share/virtualenvs/semgrep-GqZ0EjEI/lib/python3.8/site-packages/click/core.py", line 754, in invoke
+    return __callback(*args, **kwargs)
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/commands/scan.py", line 868, in scan
+    ) = semgrep.semgrep_main.main(
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/semgrep_main.py", line 343, in main
+    rule_matches_by_rule, semgrep_errors, all_targets, profiling_data = run_rules(
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/semgrep_main.py", line 149, in run_rules
+    ) = core_runner.invoke_semgrep(
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/core_runner.py", line 681, in invoke_semgrep
+    ) = self._run_rules_direct_to_semgrep_core(
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/core_runner.py", line 627, in _run_rules_direct_to_semgrep_core
+    returncode = runner.execute()
+  File "/home/runner/work/semgrep/semgrep/semgrep/semgrep/core_runner.py", line 250, in execute
+    subprocess.call("touch /tmp")
+  File "/usr/lib/python3.8/subprocess.py", line 340, in call
+    with Popen(*popenargs, **kwargs) as p:
+  File "/usr/lib/python3.8/subprocess.py", line 858, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.8/subprocess.py", line 1704, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'touch /tmp'
