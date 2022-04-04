@@ -104,7 +104,7 @@ LANGUAGE_EXCEPTIONS = {
     "ocaml": ["anno", "key_value"],
 }
 
-EXCLUDE = ["TODO", "POLYGLOT", "e2e", "OTHER"]
+EXCLUDE = ["TODO", "POLYGLOT", "e2e", "OTHER", "tainting_rules", 'TEMPLATE']
 
 #
 # Entries shown on the cheatsheet for each language, regardless of whether
